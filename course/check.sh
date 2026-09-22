@@ -155,7 +155,10 @@ TXT
     case "$OUT" in
       *"0 failed"*)
         pass "a described process became a validated design"
-        rm -rf workshop/jobs/_check /tmp/check-usecase.txt ;;
+        # Kept, not deleted. The design it produced is the interesting part of a live run,
+        # and erasing it every time is why a failure here was hard to explain.
+        printf '            kept at workshop/jobs/_check — proposed.design, BRIEF.md, job.tsv\n'
+        rm -f /tmp/check-usecase.txt ;;
       *)
         # Keep the evidence. A failure message that points at a file the script just deleted
         # is worse than no message: it sends the reader somewhere that no longer exists.

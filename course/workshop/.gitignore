@@ -1,2 +1,3 @@
 build/
 jobs/*/.scratch/
+jobs/_check/
