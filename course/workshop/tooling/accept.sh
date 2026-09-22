@@ -8,6 +8,7 @@
 #   ./accept.sh <design> --by "Name, Role"     accept, after typing the phrase
 #   ./accept.sh --status <design>              is this exact design accepted?
 #   ./accept.sh --revoke <design> --by "Name" --reason "..."
+#   ./accept.sh --note "..." --by "Name"       append a correcting entry
 #   ./accept.sh --list                         the register
 #   ./accept.sh --verify                       recompute the hash chain
 #
@@ -89,6 +90,17 @@ case "${1:-}" in
       BEGIN { prev = g }
       END { if (bad) exit 1; print "chain intact — " (NR-1) " row(s)" }' "$REG"
     exit $? ;;
+  --note)
+    # A ledger is corrected by appending, never by editing. A row that turns out to be wrong,
+    # or to refer to something since deleted, is explained by a later row — that is the whole
+    # difference between a log and an audit trail.
+    TEXT="${2:?usage: accept.sh --note \"text\" --by \"Name\"}"; shift 2
+    BY=""
+    while [ $# -gt 0 ]; do case "$1" in --by) BY="$2"; shift 2;; *) shift;; esac; done
+    [ -n "$BY" ] || { echo "a note needs a named person: --by \"Name, Role\"" >&2; exit 64; }
+    init; append note "-" "-" "$BY" "$TEXT"
+    echo "noted by $BY, row $(awk -F'\t' 'END{print $1}' "$REG"). Nothing was edited."
+    exit 0 ;;
   --status)
     F="${2:?usage: accept.sh --status <design>}"; init; status "$F"; exit $? ;;
   --revoke)

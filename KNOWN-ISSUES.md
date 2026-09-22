@@ -126,17 +126,25 @@ reads `model claude-opus-5` while nothing of the sort was called.
 
 ---
 
-## 8. Three dead rows in the acceptance register
+## 8. Three dead rows in the acceptance register, and the note that explains them
 
-`course/workshop/memory/acceptances.tsv` rows 8, 9 and 10 record absolute paths under
-`/Users/thechrisoneil/software/course/...` for jobs that were deleted. They came from testing,
-before `tooling/accept.sh` began storing paths relative to the workshop root.
+`course/workshop/memory/acceptances.tsv` rows 8, 9 and 10 record acceptances made during
+development, under the tree's former path, for jobs (`claims`, `_flowtest`) that were deleted
+afterwards. A reader checking those paths finds nothing, which looks like corruption.
 
-**They are left in place on purpose.** The register is append-only and chained; rewriting
-history to tidy it would break the chain and would be the wrong lesson. `accept.sh --verify`
-reports the chain intact at 10 rows.
+**They are left in place, and row 11 is a `note` explaining them.** The register is append-only
+and chained: removing a row would break the chain and destroy the property the register exists
+to demonstrate. A ledger is corrected by appending, never by editing.
 
-**Fix:** none. This is what an audit trail looks like.
+```bash
+tooling/accept.sh --note "..." --by "Name, Role"
+```
+
+Since row 7, `accept.sh` records paths relative to the workshop root, and the flow test writes
+to its own scratch register — so no further rows of this kind can appear.
+
+**Fix:** none, and that is the point. `tooling/accept.sh --verify` reports the chain intact at
+11 rows.
 
 ---
 
