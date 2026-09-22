@@ -19,7 +19,7 @@ make brief   DESIGN=my.design    # BRIEF.md and diagrams/ beside the design
 workshop/
   Makefile      the front door — make start, make test, make example
   tooling/      the scripts, their libraries, the schema, the method, the tests
-  examples/     designs to read and validate
+  examples/     a library of designs to read, validate and scaffold without running a session
   memory/       the acceptance register and the cost ledger — the record, not the machinery
   jobs/         one folder per engagement: use case, design, brief, job ledger
   loops/        what got built
@@ -216,6 +216,11 @@ The register keeps the acceptance and the revocation, in order. That is the diff
 a log and an audit trail.
 
 Every scaffolded loop carries `design/ACCEPTANCE.md` — who accepted what content, and when.
+
+**`jobs/invoices/` is the one complete chain** — use case, design, brief, diagrams, acceptance,
+and the loop scaffolded from it in `loops/invoices-skeleton/`, whose finished counterpart is
+`course/demo/`. The other loops were scaffolded straight from `examples/`, which is what that
+folder is for.
 
 ## Three worked use cases
 

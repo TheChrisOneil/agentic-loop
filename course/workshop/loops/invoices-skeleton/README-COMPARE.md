@@ -1,7 +1,15 @@
 # The same design, twice
 
-This folder was scaffolded from `../../examples/invoices.design`. **`course/demo/` is the
+This folder was scaffolded from `../../jobs/invoices/proposed.design`. **`course/demo/` is the
 finished version of that same design**, written by hand before the scaffolder existed.
+
+The whole chain is there to read: `jobs/invoices/use-case.txt` says what the process is,
+`proposed.design` is the design, `BRIEF.md` and `diagrams/` present it, `design/ACCEPTANCE.md`
+in this folder records who signed for it, and these `steps/` are what came out.
+
+**One thing to be straight about:** that design was written by hand to describe the working
+loop, and the use case was written afterwards to say what the loop is for. The order was
+design-then-description, not description-then-design. `jobs/invoices/job.tsv` records that.
 
 So the two are the before and after of the question students ask last: *what does it look like
 when you actually fill a step in?*

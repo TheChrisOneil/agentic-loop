@@ -3,8 +3,8 @@
 This loop was built from a design that a named person accepted.
 
 ```
-ACCEPTED — examples/invoices.design
-  accepted by A. Rivera, Accounts Payable at 2026-09-22T05:48:53
+ACCEPTED — jobs/invoices/proposed.design
+  accepted by C. ONeil, EverBetter at 2026-09-22T18:02:08
   content    84ef0d4097162b0c
 ```
 

@@ -1,0 +1,3 @@
+timestamp	stage	status	detail
+2026-09-22T18:02:05	provenance	note	This design was written by hand to describe the working loop in course/demo, not generated from the use case above. The use case was written afterwards, to say what that loop is for.
+2026-09-22T18:02:05	state	built	loops/invoices-skeleton/

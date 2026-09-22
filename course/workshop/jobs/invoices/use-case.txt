@@ -1,0 +1,18 @@
+We reconcile supplier invoices against purchase orders. Roughly 400 invoices a month arrive
+from about forty suppliers, and a person opens each one, finds the matching purchase order,
+and compares them line by line.
+
+Most match exactly. The ones that do not are a mixture: a price that changed since the order
+was raised, a partial shipment, a line nobody ordered, a duplicate that was already paid, and
+occasionally an invoice with no purchase order at all.
+
+Two people do this full time. They tell us the worst part is that everything looks the same
+until you have opened it, so the routine ones cost as much attention as the exceptions.
+
+Small variances are not worth anyone's time — under fifty dollars and under two percent, we
+just pay them. Anything above two thousand dollars needs a second approver whatever it is.
+Some suppliers are on a list where a clean reconciliation is still not enough authority to pay,
+because of how the contract is written.
+
+We have twice paid the same invoice twice when a supplier resubmitted it under a new number.
+Nothing is paid without an approval, and approvals currently take nine days.
