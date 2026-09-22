@@ -16,7 +16,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
 ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
 MODEL="${GENERATE_MODEL:-claude-opus-5}"
 MAXCHARS="${MAXCHARS:-8000}"
-REPAIRS="${REPAIRS:-1}"          # how many times the validator's findings are fed back
+REPAIRS="${REPAIRS:-2}"          # how many times the validator's findings are fed back
 UC=""; SLUG=""; BY="${USER:-unknown}"; RECORDED=""; NOTES=""
 while [ $# -gt 0 ]; do
   case "$1" in

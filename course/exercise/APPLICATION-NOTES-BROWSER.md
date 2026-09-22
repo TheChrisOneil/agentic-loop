@@ -75,8 +75,7 @@ can tell those apart.
 **`thinking` and `cache_read` say `unknown`** — and those are where the real cost of a long
 prompt lives. A browser will not tell you, so you cannot manage them.
 
-The measured figure for this same call, from the instructor's ledger, is about **$0.22**. Eight
-runs, spread of about a cent.
+The measured figure for this same call, from the instructor's ledger, is about **$0.27**.
 
 ---
 

@@ -141,11 +141,11 @@ make cost
 ```
 
 ```
-NRE   1 call(s)  $0.2181   designing the loop, paid once
+NRE   1 call(s)  $0.2722   designing the loop, paid once
 RUN   0 call(s)  $0.0000   running it, per unit of work
 ```
 
-**That NRE figure is the point.** Designing this loop cost about twenty cents, once. It is not
+**That NRE figure is the point.** Designing this loop cost about twenty-seven cents, once. It is not
 a running cost, and the deck's cost-per-completed-decision is the other number entirely.
 Measure the first or you will quote the second wrong.
 

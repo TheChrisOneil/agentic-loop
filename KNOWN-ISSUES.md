@@ -170,7 +170,20 @@ what you present. `--live` is only for rehearsing a generation in front of the r
 
 ---
 
-## 11. The deck lives outside this repo
+## 11. The first generation after a method edit costs roughly double
+
+`tooling/method/GENERATE.md` is the stable prefix of every generation prompt, so it is cached.
+Edit it and the next call pays to build the cache again: measured at **$0.50 against a steady
+state of $0.27**, with `cache_read` reading 0 on that row.
+
+**Impact:** none on correctness. It matters only if you edit the method during a session and
+then quote the next figure as typical.
+
+**Fix:** none. Read `cache_read` in `make cost` — a zero there explains the number above it.
+
+---
+
+## 12. The deck lives outside this repo
 
 `course/deck.md` is the source of record for the content. The presented deck is a private
 Artifact, and the two are kept in step by hand.
