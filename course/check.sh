@@ -4,8 +4,11 @@
 # Runs every step of REHEARSAL.md that can run unattended, compares what happened against what
 # should have happened, and names the next action for anything that failed.
 #
-#   ./check.sh           everything that needs no API key and no network
-#   ./check.sh --live    also runs one real generation, which spends tokens
+#   make ready           everything that needs no API key and no network
+#   make ready-live      also runs one real generation, which spends tokens
+#
+# Everything below goes through make, the same front door the students use — so a broken
+# target fails this check instead of surfacing in the room.
 #
 # It leaves the tree exactly as it found it. Exit 0 means the session will run.
 set -uo pipefail
@@ -92,11 +95,11 @@ expect "a budget of 3 defers the rest, on purpose" "3 worked tonight, 4 deferred
 
 # a person in the judgment seat, driven from a here-doc
 ( cd demo && make clean >/dev/null 2>&1 )
-HUMAN=$(cd demo && printf 'dispute\n-720.00\nPO-1006 says 420.00 per seat and the invoice bills 480.00 with no signed amendment\nHold 720.00 and ask Vantage for a credit note\n' \
-        | BUDGET=2 JUDGE_MODE=human ./loop.sh 2>&1)
+HUMAN=$(printf 'dispute\n-720.00\nPO-1006 says 420.00 per seat and the invoice bills 480.00 with no signed amendment\nHold 720.00 and ask Vantage for a credit note\n' \
+        | BUDGET=2 JUDGE_MODE=human make -C demo tick 2>&1)
 case "$HUMAN" in
   *"verify: PASS PO-1006"*) pass "a person can sit in the judgment seat" ;;
-  *) fail "human mode did not complete" "cd demo && BUDGET=2 JUDGE_MODE=human ./loop.sh, and answer the four prompts" ;;
+  *) fail "human mode did not complete" "cd demo && BUDGET=2 JUDGE_MODE=human make tick, and answer the four prompts" ;;
 esac
 ( cd demo && make clean >/dev/null 2>&1 )
 
@@ -154,7 +157,7 @@ where the payment history is good but the requested increase is large relative t
 customer's size, which needs somebody who knows the sector. It takes about five days.
 TXT
     ROWS_BEFORE=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)
-    OUT=$(cd workshop && tooling/generate.sh --use-case /tmp/check-usecase.txt --name _check --by "Rehearsal" 2>&1)
+    OUT=$(make -C workshop generate NAME=_check UC=/tmp/check-usecase.txt 2>&1)
     case "$OUT" in
       *"0 failed"*)
         pass "a described process became a validated design"
