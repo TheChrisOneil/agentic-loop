@@ -159,43 +159,7 @@ if ! "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Both diagrams are ARCHIVED as files beside the design, not left to be regenerated. A job
-# folder is a record somebody opens months later; a record that has to be rebuilt to be read
-# is not a record.
-DIA="$JOB/diagrams"; mkdir -p "$DIA"
-"$HERE/render.sh"        "$DESIGN" > "$DIA/sequence.mmd"
-"$HERE/render.sh" --flow "$DESIGN" > "$DIA/flow.mmd"
-SVG_NOTE=""
-if command -v mmdc >/dev/null; then
-  mmdc -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >/dev/null 2>&1 || true
-  mmdc -i "$DIA/flow.mmd"     -o "$DIA/flow.svg"     >/dev/null 2>&1 || true
-  [ -s "$DIA/sequence.svg" ] && SVG_NOTE="yes"
-fi
-
-{
-  awk -f "$HERE/lib/parse.awk" -f "$HERE/lib/brief.awk" "$DESIGN"
-  echo
-  echo "## The flow it proposes"
-  echo
-  if [ -n "$SVG_NOTE" ]; then
-    echo "Pictures, for reading: [\`diagrams/sequence.svg\`](diagrams/sequence.svg) and"
-    echo "[\`diagrams/flow.svg\`](diagrams/flow.svg). Open either one — no tooling needed."
-    echo
-  fi
-  echo "### Step by step, with every gate"
-  echo
-  echo '```mermaid'
-  cat "$DIA/sequence.mmd"
-  echo '```'
-  echo
-  echo "### The same design as a flowchart, coloured by the kind of step"
-  echo
-  echo "Green is a rule. Pink is the judgment. Amber is a gate. Blue is a check."
-  echo
-  echo '```mermaid'
-  cat "$DIA/flow.mmd"
-  echo '```'
-} > "$JOB/BRIEF.md"
+"$HERE/brief.sh" "$DESIGN" >/dev/null
 log present ok "brief and both diagrams archived"
 
 echo

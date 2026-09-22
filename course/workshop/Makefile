@@ -1,4 +1,4 @@
-.PHONY: help start jobs rules check example broken format diagram flow svg generate accept status register verify scaffold test clean
+.PHONY: help start jobs rules check example broken format brief diagram flow svg generate accept status register verify scaffold test clean
 DESIGN ?= examples/invoices.design
 help:
 	@echo "make start                the workshop — resume a job, or begin one"
@@ -6,6 +6,7 @@ help:
 	@echo "make check DESIGN=path    validate one design"
 	@echo "make diagram DESIGN=path  a Mermaid sequence diagram (validates first)"
 	@echo "make flow DESIGN=path     a Mermaid flowchart, colored by step type"
+	@echo "make brief DESIGN=path    write BRIEF.md and diagrams/ beside a design"
 	@echo "make svg DESIGN=path      render both beside the design in diagrams/ (needs mmdc)"
 	@echo "make generate NAME=slug UC=path   a use case becomes a design and a brief"
 	@echo "make accept DESIGN=path BY=\"Name, Role\"  accept a design, by name"
@@ -31,6 +32,7 @@ status:  ; @tooling/accept.sh --status $(DESIGN)
 register:; @tooling/accept.sh --list
 verify:  ; @tooling/accept.sh --verify
 scaffold:; @mkdir -p loops && tooling/scaffold.sh $(DESIGN) loops/$(NAME)
+brief:   ; @tooling/brief.sh $(DESIGN)
 diagram: ; @tooling/render.sh $(DESIGN)
 flow:    ; @tooling/render.sh --flow $(DESIGN)
 svg:

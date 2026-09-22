@@ -157,17 +157,29 @@ Edit the design, run B4 again. Repeat until it passes.
 **This is the exercise.** Arguing with the validator is where the hour lands — every rule it
 enforces is one the deck argued for.
 
-### B6 · Look at your design as a picture
+### B6 · Write it up, so somebody else can evaluate it
 
 ```bash
-tooling/render.sh jobs/team-N/proposed.design | head -30
-tooling/render.sh --flow jobs/team-N/proposed.design | head -20
+tooling/brief.sh jobs/team-N/proposed.design
 ```
 
-Paste either block into <https://mermaid.live> to see it drawn. The diagram is produced from
-the design by a rule, so it cannot disagree with what it depicts.
+This writes two things beside your design, both produced **by a rule** — nothing in them is
+written by a model, so they cannot flatter the design they describe:
 
----
+- `jobs/team-N/BRIEF.md` — your assumptions first, then the unit, the steps, the gates, the
+  proof and the KPIs, in a table somebody can read in two minutes
+- `jobs/team-N/diagrams/` — the flow as a sequence and as a flowchart, saved as `.mmd` and,
+  if `mmdc` is installed, as `.svg`
+
+```bash
+open jobs/team-N/diagrams/flow.svg        # macOS. Linux: xdg-open
+```
+
+No SVG? Paste the contents of either `.mmd` file into <https://mermaid.live>.
+
+**This is what you hand to somebody who will not run anything.** Green is a rule, pink is the
+judgment, amber is a gate, blue is a check — one look tells them how much of your process is
+machinery and how much is judgment.
 
 ## Part C — build it  ·  10 minutes
 
@@ -220,7 +232,8 @@ make ledger          # every transition, timestamped
 
 1. `jobs/team-N/use-case.txt` — the process, in your words
 2. `jobs/team-N/proposed.design` — passing 21/21
-3. One sentence: **which step is the judgment, and what checks it**
+3. `jobs/team-N/BRIEF.md` and `diagrams/` — from step B6
+4. One sentence: **which step is the judgment, and what checks it**
 
 ---
 
