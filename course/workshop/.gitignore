@@ -1,5 +1,7 @@
 jobs/*/.scratch/
 jobs/_check/
+jobs/Buzz/
 examples/diagrams/
 examples/BRIEF.md
 loops/_check/
+loops/Buzz/
