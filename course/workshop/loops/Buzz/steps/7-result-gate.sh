@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# STEP 7 — gate-post
+# STEP 7 — result-gate
 # TYPE:  gate   (permits or refuses — the condition lives HERE, in code)
 # ACTOR: code
 # SCOPE: unit
 #
 # From the design:
-#   Refuse an unusable call, missing evidence, or an unverified adjustment
+#   Refuse when the recomputation disagrees or the assessment cites no payment figure
 #
 # THIS STEP CARRIES A GATE. The design attaches one to step 7, so the step does its own
 # work and then refuses on this condition — a gate the design names is a gate the code runs.
 #
 # THE CONDITION, from the design:
-#   recomputed adjustment differs from the claimed adjustment by more than 0.01
+#   the recomputed increase ratio differs from the assessed ratio by more than 0.01, or the assessment quotes no days-beyond-terms figure, or the resulting limit exceeds 250000 USD without a Finance Director countersignature
 #
 # THE REFUSAL, from the design:
-#   Return both figures to the reviewer and have a person decide which is right
+#   The Credit Manager opens the request and decides on the payment history directly
 #
 # This condition may never move into a prompt. A prompt is a request. A rule is a rule.
 set -euo pipefail
@@ -25,14 +25,14 @@ UNIT="${1:--}"
 refuse() {
   { echo "# REFUSED — $UNIT"
     echo
-    echo "**Why this stopped:** recomputed adjustment differs from the claimed adjustment by more than 0.01"
+    echo "**Why this stopped:** the recomputed increase ratio differs from the assessed ratio by more than 0.01, or the assessment quotes no days-beyond-terms figure, or the resulting limit exceeds 250000 USD without a Finance Director countersignature"
     echo
-    echo "**Next human action:** Return both figures to the reviewer and have a person decide which is right"
+    echo "**Next human action:** The Credit Manager opens the request and decides on the payment history directly"
     echo
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
-  ledger "$UNIT" "gate-post" refused "gate 7"
-  step_say "7" "gate-post" "gate" "REFUSED — Return both figures to the reviewer and have a person decide which is right"
+  ledger "$UNIT" "result-gate" refused "gate 7"
+  step_say "7" "result-gate" "gate" "REFUSED — The Credit Manager opens the request and decides on the payment history directly"
   exit 1
 }
 
@@ -45,5 +45,5 @@ RESULT="proceed"
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "gate-post" "$RESULT" "step 7, gate with a gate, placeholder condition"
-step_say "7" "gate-post" "gate" "$RESULT"
+ledger "$UNIT" "result-gate" "$RESULT" "step 7, gate with a gate, placeholder condition"
+step_say "7" "result-gate" "gate" "$RESULT"

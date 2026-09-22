@@ -179,8 +179,11 @@ printf '%s\n' "$PLAN" | awk -F'\t' '$1=="step"' | while IFS=$'\t' read -r _ ID S
 #   $DESC
 EOF
 
-  if [ "$TYPE" = gate ] && [ -n "$GCOND" ]; then
+  if [ -n "$GCOND" ]; then
     cat >> "$F" <<EOF
+#
+# THIS STEP CARRIES A GATE. The design attaches one to step $ID, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
 #
 # THE CONDITION, from the design:
 #   $GCOND
@@ -209,13 +212,16 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. $TYPE work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "\$UNIT" = "\$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "\$UNIT" "$SLUG" proceed "gate $ID, placeholder condition"
-step_say "$ID" "$SLUG" "gate" "proceed"
+ledger "\$UNIT" "$SLUG" "\$RESULT" "step $ID, $TYPE with a gate, placeholder condition"
+step_say "$ID" "$SLUG" "$TYPE" "\$RESULT"
 EOF
 
   elif [ "$TYPE" = thinking ]; then
@@ -505,6 +511,18 @@ design that describes it. Four rules hold while you work:
 Standing goals, and a baseline for the KPIs in \`DESIGN.md\`. Both are ordinary work, and both
 are the difference between a loop that runs and a loop you can defend.
 EOF
+
+# Count what actually reached the code. A gate the design names, that the build drops, is a
+# control nobody can see missing — the renderer already refuses to draw one, and the thing
+# that writes the code must refuse to omit one.
+WRITTEN=$(grep -l "THIS STEP CARRIES A GATE\|THE CONDITION, from the design" "$OUT"/steps/*.sh 2>/dev/null | wc -l | tr -d ' ')
+if [ "$WRITTEN" -ne "$GATECOUNT" ]; then
+  echo "REFUSED: the design has $GATECOUNT gate(s) and only $WRITTEN reached the code." >&2
+  echo "         A control that exists in the design and not in the loop is the failure this" >&2
+  echo "         whole method is about. Nothing was left in $OUT." >&2
+  rm -rf "$OUT"
+  exit 1
+fi
 
 echo "Scaffolded $STEPCOUNT steps and $GATECOUNT gates into $OUT"
 echo "  cd $OUT && make tick"

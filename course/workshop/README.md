@@ -123,6 +123,7 @@ Four things are generated, not left to the team:
 | Generated | Why it is not a TODO |
 |---|---|
 | Every gate's condition and refusal, in the file header | They came from the design. Moving one into a prompt is the failure the course is about |
+| A gate on **any** step, not only a gate-typed one | A design may guard a delivery step or a selection step. The build refuses if fewer gates reach the code than the design names |
 | The proof step, with its checksum | Evidence a model can edit is not evidence |
 | The judgment step's three modes | The loop must be identical whether a model, a recording or a person answers |
 | The ledger, on every step | You cannot add an audit trail later |

@@ -136,6 +136,20 @@ else fail "job(s)$MISSING have .mmd but no .svg" \
 expect "the acceptance register verifies" "chain intact" \
   "cd workshop && make verify — a broken chain means a row was edited" -- make -C workshop verify
 
+# Every gate the design names must be in the code. A control that exists on paper and not in
+# the loop is invisible until the day it should have fired.
+GATEGAP=""
+for d in workshop/loops/*/; do
+  [ -f "$d/design/loop.design" ] || continue
+  g=$(awk '/^@gates/,/^@evidence/' "$d/design/loop.design" | grep -cE '^[0-9]')
+  w=$(grep -l "THE CONDITION, from the design" "$d"/steps/*.sh 2>/dev/null | wc -l | tr -d ' ')
+  [ "$g" = "$w" ] || GATEGAP="$GATEGAP $(basename "$d")($w of $g)"
+done
+if [ -z "$GATEGAP" ]; then pass "every loop carries every gate its design names"
+else fail "gate(s) missing from the built loop:$GATEGAP" \
+       "cd workshop && tooling/scaffold.sh --force <design> loops/<name> — it refuses to drop one now" \
+       "design gates == gates in the code" "$GATEGAP"; fi
+
 for d in workshop/loops/*/; do
   n=$(basename "$d")
   OUT=$(cd "$d" && make clean >/dev/null 2>&1; make tick 2>&1)

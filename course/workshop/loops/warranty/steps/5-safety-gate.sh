@@ -7,6 +7,9 @@
 # From the design:
 #   Refuse any admitted claim that is missing a purchase date, has an unreadable photograph, or carries a screening flag from step 2
 #
+# THIS STEP CARRIES A GATE. The design attaches one to step 5, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
+#
 # THE CONDITION, from the design:
 #   Refuse when purchase date is absent, or photograph count is 1 or more and readable photograph count is less than photograph count, or the instruction-flag count is 1 or more
 #
@@ -34,10 +37,13 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. gate work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "safety-gate" proceed "gate 5, placeholder condition"
-step_say "5" "safety-gate" "gate" "proceed"
+ledger "$UNIT" "safety-gate" "$RESULT" "step 5, gate with a gate, placeholder condition"
+step_say "5" "safety-gate" "gate" "$RESULT"

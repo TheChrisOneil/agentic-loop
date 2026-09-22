@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# STEP 4 — gate-intake
+# STEP 4 — intake-gate
 # TYPE:  gate   (permits or refuses — the condition lives HERE, in code)
 # ACTOR: code
 # SCOPE: unit
 #
 # From the design:
-#   Refuse messages carrying credentials or from senders that are not customers
+#   Refuse a request lacking payment history or an account on credit hold
 #
 # THIS STEP CARRIES A GATE. The design attaches one to step 4, so the step does its own
 # work and then refuses on this condition — a gate the design names is a gate the code runs.
 #
 # THE CONDITION, from the design:
-#   the message contains an account credential, or the sender is not a known customer
+#   fewer than 6 months of payment history on the account, or the account carries an open credit hold flag, or unpaid invoices over 60 days past due exceed 0
 #
 # THE REFUSAL, from the design:
-#   Hand the message to the security desk and do not place its text into any downstream system
+#   The Credit Analyst returns the request to the originating salesperson naming the missing history or the hold, with a 3 working day resubmission date
 #
 # This condition may never move into a prompt. A prompt is a request. A rule is a rule.
 set -euo pipefail
@@ -25,14 +25,14 @@ UNIT="${1:--}"
 refuse() {
   { echo "# REFUSED — $UNIT"
     echo
-    echo "**Why this stopped:** the message contains an account credential, or the sender is not a known customer"
+    echo "**Why this stopped:** fewer than 6 months of payment history on the account, or the account carries an open credit hold flag, or unpaid invoices over 60 days past due exceed 0"
     echo
-    echo "**Next human action:** Hand the message to the security desk and do not place its text into any downstream system"
+    echo "**Next human action:** The Credit Analyst returns the request to the originating salesperson naming the missing history or the hold, with a 3 working day resubmission date"
     echo
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
-  ledger "$UNIT" "gate-intake" refused "gate 4"
-  step_say "4" "gate-intake" "gate" "REFUSED — Hand the message to the security desk and do not place its text into any downstream system"
+  ledger "$UNIT" "intake-gate" refused "gate 4"
+  step_say "4" "intake-gate" "gate" "REFUSED — The Credit Analyst returns the request to the originating salesperson naming the missing history or the hold, with a 3 working day resubmission date"
   exit 1
 }
 
@@ -45,5 +45,5 @@ RESULT="proceed"
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "gate-intake" "$RESULT" "step 4, gate with a gate, placeholder condition"
-step_say "4" "gate-intake" "gate" "$RESULT"
+ledger "$UNIT" "intake-gate" "$RESULT" "step 4, gate with a gate, placeholder condition"
+step_say "4" "intake-gate" "gate" "$RESULT"

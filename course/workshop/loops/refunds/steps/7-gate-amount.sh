@@ -7,6 +7,9 @@
 # From the design:
 #   Refuse when the recomputed amount disagrees with the request
 #
+# THIS STEP CARRIES A GATE. The design attaches one to step 7, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
+#
 # THE CONDITION, from the design:
 #   the recomputed refundable amount differs from the requested amount
 #
@@ -34,10 +37,13 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. gate work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "gate-amount" proceed "gate 7, placeholder condition"
-step_say "7" "gate-amount" "gate" "proceed"
+ledger "$UNIT" "gate-amount" "$RESULT" "step 7, gate with a gate, placeholder condition"
+step_say "7" "gate-amount" "gate" "$RESULT"

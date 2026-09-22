@@ -7,6 +7,9 @@
 # From the design:
 #   Refuse no-PO, injection-suspect, supervised supplier, or over the cap
 #
+# THIS STEP CARRIES A GATE. The design attaches one to step 4, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
+#
 # THE CONDITION, from the design:
 #   exposure over 2000 USD, or supplier on the supervised list, or no purchase order exists
 #
@@ -34,10 +37,13 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. gate work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "gate-pre" proceed "gate 4, placeholder condition"
-step_say "4" "gate-pre" "gate" "proceed"
+ledger "$UNIT" "gate-pre" "$RESULT" "step 4, gate with a gate, placeholder condition"
+step_say "4" "gate-pre" "gate" "$RESULT"

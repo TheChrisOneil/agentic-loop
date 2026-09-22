@@ -7,6 +7,9 @@
 # From the design:
 #   Refuse when a message belongs to no case or to more than one
 #
+# THIS STEP CARRIES A GATE. The design attaches one to step 7, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
+#
 # THE CONDITION, from the design:
 #   a selected message belongs to no case, or to more than one
 #
@@ -34,10 +37,13 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. gate work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "gate-routing" proceed "gate 7, placeholder condition"
-step_say "7" "gate-routing" "gate" "proceed"
+ledger "$UNIT" "gate-routing" "$RESULT" "step 7, gate with a gate, placeholder condition"
+step_say "7" "gate-routing" "gate" "$RESULT"

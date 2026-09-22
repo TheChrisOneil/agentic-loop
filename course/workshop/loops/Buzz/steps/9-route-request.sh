@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# STEP 9 — deliver
+# STEP 9 — route-request
 # TYPE:  coordination   (binds, routes, records — it decides nothing)
 # ACTOR: code
 # SCOPE: unit
 #
 # From the design:
-#   Re-check the checksum and write a proposal for the named approver
+#   Write a proposal assigned to the named approver
 #
 # THIS STEP CARRIES A GATE. The design attaches one to step 9, so the step does its own
 # work and then refuses on this condition — a gate the design names is a gate the code runs.
 #
 # THE CONDITION, from the design:
-#   proof checksum differs from the checksum recorded when it was written
+#   record checksum differs from the checksum written at step 8, or the approver field is never set to a machine account
 #
 # THE REFUSAL, from the design:
-#   Stop delivery and have the loop owner establish who edited the proof and when
+#   Hold the request and have the ERP systems owner establish who edited the record and when
 #
 # This condition may never move into a prompt. A prompt is a request. A rule is a rule.
 set -euo pipefail
@@ -25,14 +25,14 @@ UNIT="${1:--}"
 refuse() {
   { echo "# REFUSED — $UNIT"
     echo
-    echo "**Why this stopped:** proof checksum differs from the checksum recorded when it was written"
+    echo "**Why this stopped:** record checksum differs from the checksum written at step 8, or the approver field is never set to a machine account"
     echo
-    echo "**Next human action:** Stop delivery and have the loop owner establish who edited the proof and when"
+    echo "**Next human action:** Hold the request and have the ERP systems owner establish who edited the record and when"
     echo
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
-  ledger "$UNIT" "deliver" refused "gate 9"
-  step_say "9" "deliver" "gate" "REFUSED — Stop delivery and have the loop owner establish who edited the proof and when"
+  ledger "$UNIT" "route-request" refused "gate 9"
+  step_say "9" "route-request" "gate" "REFUSED — Hold the request and have the ERP systems owner establish who edited the record and when"
   exit 1
 }
 
@@ -45,5 +45,5 @@ RESULT="proceed"
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "deliver" "$RESULT" "step 9, coordination with a gate, placeholder condition"
-step_say "9" "deliver" "coordination" "$RESULT"
+ledger "$UNIT" "route-request" "$RESULT" "step 9, coordination with a gate, placeholder condition"
+step_say "9" "route-request" "coordination" "$RESULT"

@@ -7,6 +7,9 @@
 # From the design:
 #   Refuse when the model conclusion contradicts any recomputed check, when duplicate-serial count is 1 or more, or when the model cites no photograph for an impact-damage claim
 #
+# THIS STEP CARRIES A GATE. The design attaches one to step 8, so the step does its own
+# work and then refuses on this condition — a gate the design names is a gate the code runs.
+#
 # THE CONDITION, from the design:
 #   Refuse when the model conclusion disagrees with any recomputed field, or duplicate-serial count is 1 or more, or an impact-damage finding cites zero photographs
 #
@@ -34,10 +37,13 @@ refuse() {
 }
 
 # ------------------------------------------------------------------ YOUR LOGIC
+# TODO: what this step does, if it does anything besides gate. gate work goes here.
+RESULT="proceed"
+# --------------------------------------------------------------- THEN THE GATE
 # TODO: replace this placeholder with the real condition, expressed in code.
 #       Until you do, one sample unit is refused so you can see a refusal happen.
 if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
-ledger "$UNIT" "consistency-gate" proceed "gate 8, placeholder condition"
-step_say "8" "consistency-gate" "gate" "proceed"
+ledger "$UNIT" "consistency-gate" "$RESULT" "step 8, gate with a gate, placeholder condition"
+step_say "8" "consistency-gate" "gate" "$RESULT"
