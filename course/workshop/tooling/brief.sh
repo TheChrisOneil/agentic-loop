@@ -24,7 +24,17 @@ DIA="$DIR/diagrams"; mkdir -p "$DIA"
 # Rendering to SVG is the part that can fail, and failing quietly is how somebody ends up with
 # two .mmd files and no idea why. Say what happened, every time.
 SVG=""; SVG_NOTE=""
-if ! command -v mmdc >/dev/null; then
+# mmdc installs under the active node version, which some shells put on PATH and some do not
+# — nvm adds it interactively, conda can reorder it away. Look where it lives before giving up.
+MMDC="$(command -v mmdc 2>/dev/null || true)"
+if [ -z "$MMDC" ]; then
+  for c in "$HOME"/.nvm/versions/node/*/bin/mmdc /usr/local/bin/mmdc /opt/homebrew/bin/mmdc; do
+    # mmdc is a node script, so node has to be reachable too — it sits in the same folder.
+    [ -x "$c" ] && { MMDC="$c"; PATH="$(dirname "$c"):$PATH"; export PATH
+                     echo "  note: mmdc is not on PATH; using $MMDC" >&2; break; }
+  done
+fi
+if [ -z "$MMDC" ]; then
   SVG_NOTE="mmdc is not installed, so no SVG was drawn."
   # Any SVG already here is from an older design. Leaving it is worse than having none:
   # it is a picture of something this brief no longer describes.
@@ -33,8 +43,8 @@ if ! command -v mmdc >/dev/null; then
   echo "        any earlier .svg has been removed, because it drew a different design." >&2
 else
   ERR="$DIA/.mmdc.log"
-  if mmdc -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >"$ERR" 2>&1 \
-     && mmdc -i "$DIA/flow.mmd" -o "$DIA/flow.svg" >>"$ERR" 2>&1 \
+  if "$MMDC" -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >"$ERR" 2>&1 \
+     && "$MMDC" -i "$DIA/flow.mmd" -o "$DIA/flow.svg" >>"$ERR" 2>&1 \
      && [ -s "$DIA/sequence.svg" ] && [ -s "$DIA/flow.svg" ]; then
     SVG=yes; rm -f "$ERR"
   else
