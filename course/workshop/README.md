@@ -10,7 +10,7 @@ make rules                # the 21 rules, in plain language
 make check   DESIGN=my.design
 make diagram DESIGN=my.design    # a Mermaid sequence diagram
 make flow    DESIGN=my.design    # a Mermaid flowchart, colored by step type
-make svg     DESIGN=my.design    # both, rendered to build/*.svg
+make svg     DESIGN=my.design    # both, rendered beside the design in diagrams/
 ```
 
 ## Layout

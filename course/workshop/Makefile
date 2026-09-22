@@ -6,7 +6,7 @@ help:
 	@echo "make check DESIGN=path    validate one design"
 	@echo "make diagram DESIGN=path  a Mermaid sequence diagram (validates first)"
 	@echo "make flow DESIGN=path     a Mermaid flowchart, colored by step type"
-	@echo "make svg DESIGN=path      render both to build/ as SVG (needs mmdc)"
+	@echo "make svg DESIGN=path      render both beside the design in diagrams/ (needs mmdc)"
 	@echo "make generate NAME=slug UC=path   a use case becomes a design and a brief"
 	@echo "make accept DESIGN=path BY=\"Name, Role\"  accept a design, by name"
 	@echo "make status DESIGN=path    is this exact design accepted?"
@@ -35,8 +35,10 @@ diagram: ; @tooling/render.sh $(DESIGN)
 flow:    ; @tooling/render.sh --flow $(DESIGN)
 svg:
 	@command -v mmdc >/dev/null || { echo "mmdc not installed — the .mmd output is still valid Mermaid."; exit 1; }
-	@mkdir -p build
-	@tooling/render.sh $(DESIGN) > build/sequence.mmd && mmdc -i build/sequence.mmd -o build/sequence.svg >/dev/null
-	@tooling/render.sh --flow $(DESIGN) > build/flow.mmd && mmdc -i build/flow.mmd -o build/flow.svg >/dev/null
-	@echo "build/sequence.svg  build/flow.svg"
-clean:   ; @rm -rf build && echo cleaned
+	@mkdir -p $(dir $(DESIGN))diagrams
+	@tooling/render.sh $(DESIGN) > $(dir $(DESIGN))diagrams/sequence.mmd \
+	  && mmdc -i $(dir $(DESIGN))diagrams/sequence.mmd -o $(dir $(DESIGN))diagrams/sequence.svg >/dev/null
+	@tooling/render.sh --flow $(DESIGN) > $(dir $(DESIGN))diagrams/flow.mmd \
+	  && mmdc -i $(dir $(DESIGN))diagrams/flow.mmd -o $(dir $(DESIGN))diagrams/flow.svg >/dev/null
+	@echo "$(dir $(DESIGN))diagrams/sequence.svg  $(dir $(DESIGN))diagrams/flow.svg"
+clean:   ; @rm -rf examples/diagrams && echo cleaned
