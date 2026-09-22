@@ -205,6 +205,14 @@ pictures were drawn and how to see them anyway. `check.sh` fails when a job has 
 **Impact:** a reader who will not run anything needs the pictures. Install `mmdc` before the
 session, or paste a `.mmd` into <https://mermaid.live>.
 
+**`mmdc` may be on your PATH in one shell and not another.** It installs under the active node
+version — here `~/.nvm/versions/node/v18.18.2/bin` — which nvm adds to an interactive shell.
+A shell that does not source nvm, or one a conda environment has reordered, will not find it.
+`command -v mmdc` in the shell you are actually using is the check that matters.
+
+An earlier `.svg` is **deleted** when rendering fails, rather than left beside a newer `.mmd`.
+A stale picture of a design you have since revised is worse than no picture.
+
 **Fix:** none needed — the dependency is real and the absence is now reported.
 
 ---

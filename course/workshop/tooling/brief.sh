@@ -26,7 +26,11 @@ DIA="$DIR/diagrams"; mkdir -p "$DIA"
 SVG=""; SVG_NOTE=""
 if ! command -v mmdc >/dev/null; then
   SVG_NOTE="mmdc is not installed, so no SVG was drawn."
+  # Any SVG already here is from an older design. Leaving it is worse than having none:
+  # it is a picture of something this brief no longer describes.
+  rm -f "$DIA/sequence.svg" "$DIA/flow.svg"
   echo "  note: mmdc is not installed — the .mmd files are still valid Mermaid." >&2
+  echo "        any earlier .svg has been removed, because it drew a different design." >&2
 else
   ERR="$DIA/.mmdc.log"
   if mmdc -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >"$ERR" 2>&1 \
@@ -35,6 +39,7 @@ else
     SVG=yes; rm -f "$ERR"
   else
     SVG_NOTE="mmdc is installed but could not draw these diagrams. Its output is in diagrams/.mmdc.log."
+    rm -f "$DIA/sequence.svg" "$DIA/flow.svg"
     echo "  note: mmdc failed — see $DIA/.mmdc.log. The .mmd files are still valid Mermaid." >&2
     tail -3 "$ERR" 2>/dev/null | sed 's/^/        /' >&2
   fi
