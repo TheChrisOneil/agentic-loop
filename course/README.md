@@ -13,6 +13,7 @@ course/
   check.sh                     run this first — checks everything a machine can check
   REHEARSAL.md                 then this — every step, every expected line, and what to say
   exercise/
+    APPLICATION-NOTES.md       the hands-on path, command by command, for students
     worksheet.md               the student deliverable — one page, six boxes
     helper-prompts.md          prompts to hand teams that get stuck
     discussion.md              the five questions, with what each one is fishing for

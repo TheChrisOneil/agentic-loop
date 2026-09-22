@@ -99,6 +99,11 @@ Then sit down. That single interruption fixes more worksheets than ten minutes o
 3. **Three thinking steps.** Ask which two could be rules if somebody wrote the procedure down.
    Usually both.
 
+**Teams with a laptop who want to run it:** point them at
+`exercise/APPLICATION-NOTES.md` — clone, check, see the demo, write a use case, get a design
+from their own assistant, argue with the validator, accept it, build it. Every command in it
+has been run.
+
 **Teams who finish early:** hand them the second page of the worksheet — write the three-list
 contract for their loop, and one standing goal with a predicate that could actually fail.
 
