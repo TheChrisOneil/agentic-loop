@@ -127,14 +127,30 @@ sends it, so the same use case produces the same shape twice.
 make generate NAME=team-N UC=jobs/team-N/use-case.txt
 ```
 
-It does four things you would otherwise do by hand:
+It takes about half a minute, and tells you where it is:
 
-1. **Screens your text by a rule** before any model reads it — too short, too long, or text
-   addressed to the system is refused with the next action named
-2. **Sends the method and your use case**, and takes the design out of the reply
-3. **Validates it, and iterates.** A rejected design goes back with the validator's findings,
-   once. `REPAIRS=2` buys another round
-4. **Records what it cost**
+```
+  screening the description … ok, 1083 characters, no text addressed to the system
+  asking claude-opus-5 for a design … (about 30 seconds)
+  validating … 22 passed, 0 failed, 1 warning(s)
+```
+
+Four things happened in those three lines:
+
+1. **Your text was screened by a rule** before any model read it — too short, too long, or
+   text addressed to the system is refused with the next action named
+2. **The method and your use case were sent**, and the design taken out of the reply
+3. **The design was validated.** If it failed, the findings go back and it tries again —
+   you will see a fourth line saying so:
+
+   ```
+   validating … 2 failed — sending the findings back
+   asking claude-opus-5 again, carrying what the validator said …
+   validating … 22 passed, 0 failed, 1 warning(s)
+   ```
+
+   Two rounds is the budget. After that it refuses and shows you the findings.
+4. **The call was costed**
 
 ```bash
 make cost

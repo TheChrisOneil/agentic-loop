@@ -82,6 +82,8 @@ case "$VERDICT" in
     exit 1 ;;
 esac
 log intake ok "$CHARS characters"
+# Three lines, so a thirty-second wait does not read as a hang.
+echo "  screening the description … ok, $CHARS characters, no text addressed to the system"
 
 DESIGN="$JOB/proposed.design"
 
@@ -138,6 +140,11 @@ else
   attempt=0
   while :; do
     log generate calling "attempt $((attempt+1)), model $MODEL"
+    if [ "$attempt" -eq 0 ]; then
+      printf '  asking %s for a design … (about 30 seconds)\n' "$MODEL"
+    else
+      printf '  asking %s again, carrying what the validator said …\n' "$MODEL"
+    fi
     build_prompt | claude -p --model "$MODEL" --output-format json \
       > "$SCRATCH/raw.json" 2>"$SCRATCH/raw.err" || true
     . "$HERE/lib/json.sh"
@@ -153,10 +160,12 @@ else
       exit 1
     fi
     if "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
+      echo "  validating … $("$HERE/validate.sh" "$DESIGN" | tail -1 | sed 's/^ *//')"
       log generate ok "attempt $((attempt+1)) passed the validator"
       break
     fi
     "$HERE/validate.sh" --tsv "$DESIGN" | awk -F'\t' '$1=="ERROR"{print "  "$2"  "$3"  -> "$4}' > "$JOB/findings.txt"
+    FINDINGS_N=$(wc -l < "$JOB/findings.txt" | tr -d ' ')
     attempt=$((attempt+1))
     if [ "$attempt" -gt "$REPAIRS" ]; then
       log generate refused "still failing after $attempt attempts"
@@ -169,7 +178,7 @@ else
       exit 1
     fi
     log generate repairing "attempt $attempt rejected, feeding findings back"
-    echo "  generate: attempt $attempt rejected by the validator, repairing"
+    echo "  validating … $(printf '%s' "$FINDINGS_N") failed — sending the findings back"
   done
   rm -f "$JOB/findings.txt"
 fi
