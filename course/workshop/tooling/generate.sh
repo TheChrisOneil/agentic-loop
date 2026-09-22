@@ -28,7 +28,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -n "$SLUG" ] || { echo "usage: generate.sh --name <slug> [--use-case <file>] [--recorded <design>]" >&2; exit 64; }
-case "$SLUG" in *[!a-zA-Z0-9_-]*) echo "--name must be a slug: letters, digits, dash, underscore" >&2; exit 64 ;; esac
+case "$SLUG" in
+  -*) echo "REFUSED: --name got \"$SLUG\", which looks like a flag." >&2
+      echo "         That is almost always a missing value: check the argument order." >&2
+      exit 64 ;;
+  *[!a-zA-Z0-9_-]*) echo "--name must be a slug: letters, digits, dash, underscore" >&2; exit 64 ;;
+esac
 
 JOB="$ROOT/jobs/$SLUG"
 mkdir -p "$JOB"

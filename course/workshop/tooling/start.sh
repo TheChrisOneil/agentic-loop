@@ -36,7 +36,10 @@ list_jobs() {
 begin_new() {
   rule; echo "  A new job."; rule; echo
   read -r -p "  Short name for it (letters, digits, dashes): " SLUG
-  case "$SLUG" in ""|*[!a-zA-Z0-9_-]*) echo "  That is not a usable name. Nothing was started."; exit 64 ;; esac
+  case "$SLUG" in
+    -*) echo "  A name cannot start with a dash — that looks like a flag. Nothing was started."; exit 64 ;;
+    ""|*[!a-zA-Z0-9_-]*) echo "  That is not a usable name. Nothing was started."; exit 64 ;;
+  esac
   [ -d "$JOBS/$SLUG" ] && { echo "  A job called $SLUG already exists. Resume it with --job $SLUG."; exit 1; }
   read -r -p "  Your name and role, for the record: " BY
   [ -n "$BY" ] || { echo "  A job needs an owner. Nothing was started."; exit 64; }
