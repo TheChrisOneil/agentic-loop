@@ -1,13 +1,13 @@
 # Application notes — running the loop yourself
 
-Every command below has been run. Copy them one at a time and read what comes back; the point
-is the output, not the typing.
+Every command is `make`. Every one has been run. Copy them one at a time and read what comes
+back; the point is the output, not the typing.
 
-**What you need:** a laptop with a terminal and `git`.
+**What you need:** a laptop with a terminal, `git`, and the `claude` CLI with a key — your
+instructor may provide a class key.
 
-For part B you need **one of**: the `claude` CLI with a key (your instructor may provide a
-class key), or an LLM account in a browser — the free tier is fine. The CLI path measures what
-the design cost; the browser path estimates it. Both produce the same design.
+**No CLI?** Use `APPLICATION-NOTES-BROWSER.md` instead. Same design, same result, a few more
+steps, and the cost is estimated rather than measured.
 
 **macOS and Linux** work as written. **Windows:** use WSL2, or pair with somebody who has a Mac.
 
@@ -25,10 +25,10 @@ cd agentic-loop/course
 ### A2 · Check your machine
 
 ```bash
-./check.sh
+make ready
 ```
 
-**You want:** `READY   33 checks passed`.
+**You want:** `READY   37 checks passed`.
 
 If anything says FAIL, read the `next:` line under it — it names what to do. Do not continue
 until this is green; nothing below will work.
@@ -40,8 +40,7 @@ cd demo
 make clean && make tick
 ```
 
-**Read the whole output.** Eleven invoice lines became nine units of work. Watch what happened
-to each:
+**Read the whole output.** Eleven invoice lines became nine units of work:
 
 | | |
 |---|---|
@@ -54,7 +53,7 @@ to each:
 ### A4 · Look at one refusal
 
 ```bash
-cat outbox/NOPO-MERI.REFUSED.md
+make refusal
 ```
 
 Every refusal names a **next human action**. Not "needs review" — a specific thing a specific
@@ -63,7 +62,7 @@ person does next.
 ### A5 · Look at what a human would approve from
 
 ```bash
-cat proof/PO-1006.txt
+make proof
 ```
 
 You could approve or reject this without trusting the machine at all. That is the test for
@@ -93,28 +92,29 @@ cd ..
 
 ## Part B — design your own  ·  25 minutes
 
-### B1 · Write your use case
+### B1 · Start a job
 
 ```bash
 cd workshop
 make help                     # every command, in one list
-mkdir -p jobs/team-N          # use your team number
+make job NAME=team-N          # use your team number
 ```
 
-Open `jobs/team-N/use-case.txt` in any editor and describe your process in plain language.
-What helps most:
+It makes the folder, creates an empty use case, and opens your editor. Describe your process
+in plain language. What helps most:
 
 - what the work is, and roughly how much of it there is
 - who does it today, and what the exceptions look like
 - what goes wrong, and what it costs when it does
 - anything a person has to **judge** rather than look up
 
-No format. Write it as you would explain it to a new colleague. Six to ten sentences.
+No format. Write it as you would explain it to a new colleague. Six to ten sentences. Save and
+close the editor.
 
 ### B2 · Read the method the wrapper will use
 
 ```bash
-cat tooling/method/GENERATE.md
+make method
 ```
 
 This is a **skill** — a written procedure a model follows: what to check, in what order, what
@@ -134,7 +134,7 @@ It does four things you would otherwise do by hand:
 2. **Sends the method and your use case**, and takes the design out of the reply
 3. **Validates it, and iterates.** A rejected design goes back with the validator's findings,
    once. `REPAIRS=2` buys another round
-4. **Records what it cost** — input, output, thinking and cache tokens, and the dollar figure
+4. **Records what it cost**
 
 ```bash
 make cost
@@ -149,36 +149,6 @@ RUN   0 call(s)  $0.0000   running it, per unit of work
 a running cost, and the deck's cost-per-completed-decision is the other number entirely.
 Measure the first or you will quote the second wrong.
 
----
-
-#### B3 alternative · no CLI? Paste, then record what you can
-
-If you have a browser assistant rather than the `claude` CLI: paste the whole of
-`tooling/method/GENERATE.md`, then your `use-case.txt`, and save the reply exactly as it comes
-back — it starts with `@meta`.
-
-```bash
-pbpaste > jobs/team-N/proposed.design      # macOS. Linux: open an editor and paste
-```
-
-**Do not tidy it up.** The next step judges what the model produced.
-
-Then record the call, because a browser reports no numbers:
-
-```bash
-cat tooling/method/GENERATE.md jobs/team-N/use-case.txt > /tmp/prompt.txt
-make estimate NAME=team-N PROMPT=/tmp/prompt.txt REPLY=jobs/team-N/proposed.design MODEL=claude.ai
-```
-
-It estimates tokens from the text and records the row as **`source=estimated`** with no dollar
-figure. That is deliberate: a price this script guessed would read exactly like a price
-somebody measured. The measured figure for the same call, from the instructor's ledger, is
-about **$0.22**.
-
-Notice what is missing from your row — **thinking tokens and cache reads are `unknown`**, and
-they are where the real cost of a long prompt lives. That gap is the lesson: what you cannot
-measure, you cannot manage, and a browser will not tell you.
-
 ### B4 · Read what the validator said
 
 The wrapper already ran it — and iterated once if the first design failed. Run it yourself to
@@ -188,10 +158,7 @@ see the twenty-one rules:
 make check DESIGN=jobs/team-N/proposed.design
 ```
 
-You want `0 failed`. If you took the paste route, this is the first time your design is
-judged, and a failure here is normal.
-
-Every failure names the fix. The four worth understanding when you see them:
+You want `0 failed`. Every failure names the fix. The four worth understanding:
 
 | Rule | Refuses |
 |---|---|
@@ -205,7 +172,7 @@ Every failure names the fix. The four worth understanding when you see them:
 Edit the design, run B4 again. Repeat until it passes.
 
 ```bash
-cat jobs/team-N/job.tsv     # what the wrapper did, in order, including any repair round
+make history NAME=team-N      # what the wrapper did, in order, including any repair round
 ```
 
 **This is the exercise.** Arguing with the validator is where the hour lands — every rule it
@@ -215,25 +182,21 @@ enforces is one the deck argued for.
 
 ```bash
 make brief DESIGN=jobs/team-N/proposed.design
+make show NAME=team-N
 ```
 
-This writes two things beside your design, both produced **by a rule** — nothing in them is
-written by a model, so they cannot flatter the design they describe:
+`make brief` writes two things beside your design, both produced **by a rule** — nothing in
+them is written by a model, so they cannot flatter the design they describe:
 
-- `jobs/team-N/BRIEF.md` — your assumptions first, then the unit, the steps, the gates, the
-  proof and the KPIs, in a table somebody can read in two minutes
-- `jobs/team-N/diagrams/` — the flow as a sequence and as a flowchart, saved as `.mmd` and,
-  if `mmdc` is installed, as `.svg`
+- `BRIEF.md` — your assumptions first, then the unit, the steps, the gates, the proof and the
+  KPIs, in a table somebody can read in two minutes
+- `diagrams/` — the flow as a sequence and as a flowchart
 
-```bash
-open jobs/team-N/diagrams/flow.svg        # macOS. Linux: xdg-open
-```
+`make show` opens the flowchart. **This is what you hand to somebody who will not run
+anything.** Green is a rule, pink is the judgment, amber is a gate, blue is a check — one look
+tells them how much of your process is machinery and how much is judgment.
 
-No SVG? Paste the contents of either `.mmd` file into <https://mermaid.live>.
-
-**This is what you hand to somebody who will not run anything.** Green is a rule, pink is the
-judgment, amber is a gate, blue is a check — one look tells them how much of your process is
-machinery and how much is judgment.
+---
 
 ## Part C — build it  ·  10 minutes
 
@@ -263,22 +226,20 @@ cd loops/team-N
 make tick
 ```
 
-Three sample units go through **your** design. One is refused by **your** gate, carrying **your**
-refusal text. A proof is written and checksummed.
+Three sample units go through **your** design. One is refused by **your** gate, carrying
+**your** refusal text. A proof is written and checksummed. Each line shows the kind of step —
+watch how much of the column is a rule and how little is judgment.
 
 ### C4 · See what is left
 
 ```bash
-make todo
+make todo        # every placeholder still to implement
+make design      # the design this loop was built from
+make ledger      # every transition, timestamped
 ```
 
-Every step is a placeholder. The loop runs; nothing decides anything yet. That is deliberate —
-you settled the shape before writing a line of logic, which is the cheapest order to do it in.
-
-```bash
-cat DESIGN.md        # your design, with the diagram, as the loop's own documentation
-make ledger          # every transition, timestamped
-```
+The loop runs; nothing decides anything yet. That is deliberate — you settled the shape before
+writing a line of logic, which is the cheapest order to do it in.
 
 ---
 
@@ -295,9 +256,10 @@ make ledger          # every transition, timestamped
 
 | What you see | What to do |
 |---|---|
-| `command not found: make` | macOS: `xcode-select --install`. Then re-run `./check.sh` |
+| `command not found: make` | macOS: `xcode-select --install`. Then `make ready` |
+| A make target prints its own usage | A variable is missing. The message shows the form |
 | The validator fails and you disagree with it | Good. Say so out loud — some rules are arguable, and the argument is the lesson |
 | `REFUSED: this design has not been accepted` | Run C1 first. The gate is working |
 | `CHANGED SINCE ACCEPTANCE` | You edited the design after accepting it. Accept the new version |
-| Your assistant returns prose, not a design | It ignored the method. Tell it: *"Emit only the design file, starting with `@meta`. No commentary."* |
+| `REFUSED: the claude CLI is not installed` | Switch to `APPLICATION-NOTES-BROWSER.md` |
 | Anything else | `KNOWN-ISSUES.md` at the repository root lists what is already understood |

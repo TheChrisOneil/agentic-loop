@@ -1,7 +1,9 @@
 # Everything you can do to this loop, in one place.
-.PHONY: tick clean units findings report trust goals demo-tamper demo-badmath demo-cap demo-narrow help
+.PHONY: tick refusal proof clean units findings report trust goals demo-tamper demo-badmath demo-cap demo-narrow help
 help:
 	@echo "make tick          run one night of the loop"
+	@echo "make refusal       one refusal, and the next human action it names"
+	@echo "make proof         what a human would approve from"
 	@echo "make report        what happened, from the ledger"
 	@echo "make units         the units this night was decomposed into"
 	@echo "make findings      what the arithmetic concluded about each one"
@@ -14,6 +16,12 @@ help:
 	@echo "make clean         forget everything and start the night over"
 
 tick: ; @./loop.sh
+refusal:
+	@f=$$(ls outbox/*REFUSED* 2>/dev/null | head -1); \
+	 if [ -n "$$f" ]; then echo "--- $$f ---"; cat "$$f"; else echo "no refusals yet — run make tick"; fi
+proof:
+	@f=$$(ls proof/*.txt 2>/dev/null | head -1); \
+	 if [ -n "$$f" ]; then echo "--- $$f ---"; cat "$$f"; else echo "no proofs yet — run make tick"; fi
 units:	; @column -t -s'	' memory/units.tsv 2>/dev/null || cat memory/units.tsv
 findings: ; @column -t -s'	' memory/findings.tsv 2>/dev/null || cat memory/findings.tsv
 trust: ; @./scripts/trust-log.sh --render

@@ -56,7 +56,7 @@ a manager who cannot read the specification cannot assess the work."*
 
 ## Before you walk in
 
-**The day before:** run `./check.sh` (one minute), then work through `REHEARSAL.md` end to end. Twenty minutes, and every expected
+**The day before:** run `make ready` (one minute), then work through `REHEARSAL.md` end to end. Twenty minutes, and every expected
 line in it came from a real run, so a difference means something is actually wrong.
 
 **On the day:**

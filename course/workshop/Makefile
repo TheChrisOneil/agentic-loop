@@ -1,7 +1,11 @@
-.PHONY: help start jobs rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
+.PHONY: help job method history show start jobs rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
 DESIGN ?= examples/invoices.design
 MODEL  ?= browser-assistant
 help:
+	@echo "make job NAME=slug        start a job: a folder, an empty use case, your editor"
+	@echo "make method               the written procedure the wrapper sends"
+	@echo "make history NAME=slug    what happened on that job, in order"
+	@echo "make show NAME=slug       open that job's flowchart"
 	@echo "make start                the workshop — resume a job, or begin one"
 	@echo "make jobs                 every job and where it stopped"
 	@echo "make check DESIGN=path    validate one design"
@@ -27,6 +31,36 @@ example: ; @tooling/validate.sh examples/invoices.design
 broken:  ; @tooling/validate.sh examples/broken.design || true
 rules:   ; @tooling/validate.sh --rules
 format:  ; @cat tooling/schema/DESIGN-FORMAT.md
+job:
+	@[ -n "$(NAME)" ] || { echo "make job NAME=<slug>   e.g. make job NAME=team-7"; exit 64; }
+	@mkdir -p jobs/$(NAME)
+	@[ -e jobs/$(NAME)/use-case.txt ] || printf '%s\n' \
+	  "# Describe the process in your own words. Delete these lines as you go." \
+	  "#" \
+	  "#   what the work is, and roughly how much of it there is" \
+	  "#   who does it today, and what the exceptions look like" \
+	  "#   what goes wrong, and what it costs when it does" \
+	  "#   anything a person has to judge rather than look up" \
+	  "" > jobs/$(NAME)/use-case.txt
+	@echo "  jobs/$(NAME)/use-case.txt"
+	@if [ -t 1 ]; then \
+	   if [ -n "$$EDITOR" ]; then $$EDITOR jobs/$(NAME)/use-case.txt; \
+	   elif command -v open >/dev/null; then open -t jobs/$(NAME)/use-case.txt; \
+	   elif command -v nano >/dev/null; then nano jobs/$(NAME)/use-case.txt; \
+	   else echo "  no editor found — open that file however you like"; fi; \
+	 else echo "  (not a terminal: opened no editor)"; fi
+method:  ; @cat tooling/method/GENERATE.md
+history:
+	@[ -n "$(NAME)" ] || { echo "make history NAME=<slug>"; exit 64; }
+	@if [ -s jobs/$(NAME)/job.tsv ]; then column -t -s"$$(printf '\t')" jobs/$(NAME)/job.tsv 2>/dev/null || cat jobs/$(NAME)/job.tsv; \
+	 else echo "no job called $(NAME) yet — make job NAME=$(NAME)"; fi
+show:
+	@[ -n "$(NAME)" ] || { echo "make show NAME=<slug>"; exit 64; }
+	@if [ -f jobs/$(NAME)/diagrams/flow.svg ]; then \
+	   if command -v open >/dev/null; then open jobs/$(NAME)/diagrams/flow.svg; \
+	   elif command -v xdg-open >/dev/null; then xdg-open jobs/$(NAME)/diagrams/flow.svg; \
+	   else echo "  jobs/$(NAME)/diagrams/flow.svg"; fi; \
+	 else echo "no diagram yet — make brief DESIGN=jobs/$(NAME)/proposed.design"; fi
 start:   ; @tooling/start.sh
 jobs:    ; @tooling/start.sh --list
 generate:

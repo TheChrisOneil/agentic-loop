@@ -14,7 +14,8 @@ course/
   REHEARSAL.md                 then this — every step, every expected line, and what to say
   facility-request-email.md    the room and network requirements, as a draft email
   exercise/
-    APPLICATION-NOTES.md       the hands-on path, command by command, for students
+    APPLICATION-NOTES.md       the hands-on path, every command a make target
+    APPLICATION-NOTES-BROWSER.md   the same, for students with no CLI — paste and estimate
     worksheet.md               the student deliverable — one page, six boxes
     helper-prompts.md          prompts to hand teams that get stuck
     discussion.md              the five questions, with what each one is fishing for
