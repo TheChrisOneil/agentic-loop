@@ -173,8 +173,18 @@ what you present. `--live` is only for rehearsing a generation in front of the r
 ## 11. The first generation after a method edit costs roughly double
 
 `tooling/method/GENERATE.md` is the stable prefix of every generation prompt, so it is cached.
-Edit it and the next call pays to build the cache again: measured at **$0.50 against a steady
-state of $0.27**, with `cache_read` reading 0 on that row.
+Edit it and the next call pays to build the cache again.
+
+Measured over thirteen calls in `memory/usage.tsv`:
+
+| | Calls | Mean |
+|---|---|---|
+| Warm cache (`cache_read` ~25,000) | 10 | **$0.2275** |
+| Cold cache (`cache_read` 0) | 3 | **$0.4029** |
+
+Within the warm figure, cost tracks **output length**, not prompt length — the longest design
+on record cost $0.2722 and the shortest $0.2159. Lengthening the method therefore costs
+almost nothing per call, because the method is the part that is cached.
 
 **Impact:** none on correctness. It matters only if you edit the method during a session and
 then quote the next figure as typical.
