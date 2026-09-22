@@ -5,6 +5,16 @@ below was copied from a real run — if yours differs, something is wrong and th
 
 Twenty minutes. Do it the day before, not an hour before.
 
+**Or run it as a script:**
+
+```bash
+./check.sh          # every step that needs no key — about a minute
+./check.sh --live   # also runs one real generation, which spends tokens
+```
+
+`check.sh` checks what a machine can check and names the next action for anything that fails.
+It cannot rehearse what you say, which is most of the value below. Run both.
+
 ```bash
 cd ~/…/agentic-loop/course        # wherever you cloned it
 ```

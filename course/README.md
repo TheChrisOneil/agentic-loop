@@ -10,7 +10,8 @@ course/
   README.md                    you are here — prerequisites and run order
   deck.md                      the deck, in prose: every slide, and what to say on it
   facilitator-guide.md         the minute-by-minute run sheet, with the demo cues
-  REHEARSAL.md                 run this before the session — every step, every expected line
+  check.sh                     run this first — checks everything a machine can check
+  REHEARSAL.md                 then this — every step, every expected line, and what to say
   exercise/
     worksheet.md               the student deliverable — one page, six boxes
     helper-prompts.md          prompts to hand teams that get stuck
@@ -66,8 +67,9 @@ Tables of four. The exercise fails at tables of eight — one person writes and 
 
 ## Run order
 
-0. **Run `REHEARSAL.md` once, start to finish, on the machine you will present from.**
-   Twenty minutes, every expected line copied from a real run. Do it the day before.
+0. **Run `./check.sh`** — a minute, and it tells you whether the machine is ready.
+   Then work through **`REHEARSAL.md`** once on the machine you will present from: twenty
+   minutes, every expected line copied from a real run. Do it the day before.
 1. Read `deck.md` end to end. It is written as prose, so you can read it as a script the
    first time you teach it and abandon it the second time.
 2. Print the worksheet, one per team, plus a few spares.
