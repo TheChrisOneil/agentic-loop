@@ -39,6 +39,12 @@ if [ -s "$JSON" ] && [ "$(json_tier)" != none ]; then
   THINK=$(g usage.output_tokens_details.thinking_tokens)
   CR=$(g usage.cache_read_input_tokens); CW=$(g usage.cache_creation_input_tokens)
   USD=$(g total_cost_usd)
+  # Round at write time: the CLI returns a full float (0.25395399999999996), which is noise on
+  # a projector and in a ledger. Six places keeps sub-cent calls honest.
+  case "$USD" in
+    unknown) ;;
+    *) USD=$(awk -v v="$USD" 'BEGIN{printf "%.6f", v}') ;;
+  esac
   # "cli" only when the CLI actually gave us numbers. Saying cli over a row of unknowns
   # would name a source that reported nothing.
   if [ "$IN" = unknown ] && [ "$OUT" = unknown ] && [ "$USD" = unknown ]; then
