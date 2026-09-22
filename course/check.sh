@@ -195,7 +195,10 @@ TXT
           *"worked 3"*) pass "the loop it built ticks: $(printf '%s' "$TICK" | grep -o 'worked 3.*failed 0')" ;;
           *) fail "the loop built from the fresh design does not tick" "cd workshop/loops/_check && make tick" ;;
         esac
-        rm -rf workshop/loops/_check "$CHAIN_REG"
+        # The loop is kept, like the job. It is what the fresh design actually built, and
+        # erasing it leaves nothing to look at after a rehearsal.
+        printf '            kept at workshop/loops/_check — make -C workshop/loops/_check tick\n'
+        rm -f "$CHAIN_REG"
         # The call must leave a priced row. A generator that spends money and records nothing
         # is the hole this course admits to having.
         ROWS_AFTER=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)
