@@ -5,6 +5,12 @@ be. Nothing here breaks the session as it runs today on macOS.
 
 Last reviewed: 2026-09-22.
 
+Paths are given as files, not line numbers — a line number is wrong after the next edit and
+sends the reader to the wrong place with confidence.
+
+Layout: the scripts live in `course/workshop/tooling/`, the acceptance register in
+`course/workshop/memory/`, engagements in `jobs/`, and what was built in `loops/`.
+
 ---
 
 ## 1. A missing `column` reports "no data" instead of "I could not look"
@@ -38,8 +44,7 @@ when `column` is absent, and say which happened.
 Three display-only call sites abort rather than degrade:
 
 ```
-course/demo/Makefile:15              make units
-course/demo/Makefile:16              make findings
+course/demo/Makefile                          make units, make findings
 course/workshop/tooling/tests/repair-path.sh
 ```
 
@@ -58,9 +63,9 @@ Ten call sites use `shasum -a 256`. It is a perl script — always on macOS, usu
 
 | File | What it hashes |
 |---|---|
-| `course/workshop/tooling/accept.sh` | The design content, the register's chain link, the chain re-verification |
-| `course/demo/steps/8-prove.sh:36` | Writes the proof checksum |
-| `course/demo/steps/9-deliver.sh:11` | Re-checks it before delivery |
+| `course/workshop/tooling/accept.sh` ×3 | The design content, the register's chain link, the chain re-verification |
+| `course/demo/steps/8-prove.sh` | Writes the proof checksum |
+| `course/demo/steps/9-deliver.sh` | Re-checks it before delivery |
 | `course/workshop/tooling/scaffold.sh` | The line generated into every scaffolded prove step |
 | `loops/*/` prove steps | The same line, already written out |
 
@@ -103,7 +108,7 @@ The intake and discussion steps read with `cat`, which consumes stdin to end-of-
 piping `slug, owner, use-case, choice` in one stream loses everything after the use case.
 
 **Impact:** interactive use is unaffected — Ctrl-D ends each block as intended. Automation must
-invoke `start.sh` once per phase, which is what `tests/flow.sh` does.
+invoke `start.sh` once per phase, which is what `tooling/tests/flow.sh` does.
 
 **Fix:** read the free-text blocks from a file descriptor separate from the menu prompts, or
 accept `--use-case <file>` in `start.sh` the way `generate.sh` already does.
