@@ -62,9 +62,6 @@ cd demo && make clean && make tick && make report
 
 Leave the terminal open on that output. Font at 18pt or larger.
 
-Have both diagrams open in tabs: `../../eb-city/docs/diagrams/teaching-1-the-loop.svg` and
-`teaching-2-the-ladder.svg`.
-
 Publish the worksheet link and have it on screen as the exercise starts. Nothing is printed.
 
 ---

@@ -29,7 +29,6 @@ course/
 |---|---|---|
 | A terminal on macOS or Linux | bash, awk, sed, sort, shasum — all preinstalled | `make -C demo tick` prints a full night |
 | A projector or screen share | the demo is terminal text, so use a large font | 18pt minimum, dark-on-light reads better in a bright room |
-| The two diagrams | `../../eb-city/docs/diagrams/teaching-1-the-loop.svg` and `teaching-2-the-ladder.svg` | open both before the session starts |
 | 15 minutes of rehearsal | run `make tick`, `make demo-tamper`, `make demo-badmath` once each | you want to know what scrolls past |
 
 **No API key is required.** The demo's judgment step runs in `stub` mode by default: recorded

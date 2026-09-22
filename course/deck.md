@@ -56,10 +56,10 @@ This is not an anti-AI position. It is how you get an AI system a business can a
 
 ---
 
-## 4 — The ladder  ·  3 min  ·  VISUAL: `teaching-2-the-ladder.svg`
+## 4 — The ladder  ·  3 min
 
-**On the slide:** The three rungs. Code at the bottom, a skill in the middle, raw inference
-at the top.
+**On the slide:** The three rungs, as stacked cards. Code at the bottom, a skill in the middle,
+raw inference at the top.
 
 **What you say:**
 
@@ -151,10 +151,10 @@ train home. It is uncomfortable.
 
 ---
 
-## 8 — The loop, in order  ·  3 min  ·  VISUAL: `teaching-1-the-loop.svg`
+## 8 — The loop, in order  ·  3 min
 
-**On the slide:** the flowchart. DECOMPOSE → SELECT → JUDGE → GATE → ATTEMPT → GATE → WORK →
-VERIFY → PROVE → GATE → DELIVER.
+**On the slide:** the eleven steps as coloured pills, in order. DECOMPOSE → SELECT → JUDGE →
+GATE → ATTEMPT → GATE → WORK → VERIFY → PROVE → GATE → DELIVER.
 
 **What you say:**
 
