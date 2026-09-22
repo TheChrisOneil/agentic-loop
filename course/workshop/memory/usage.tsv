@@ -1,1 +1,2 @@
 date	job	stage	model	in	out	thinking	cache_read	cache_write	usd	source
+2026-09-22	_check	generate	claude-opus-5	2	1861	0	25248	15291	0.212069	cli

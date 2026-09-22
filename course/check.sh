@@ -151,10 +151,24 @@ reason sales wants it. One credit analyst works the queue. Most are routine. The
 where the payment history is good but the requested increase is large relative to the
 customer's size, which needs somebody who knows the sector. It takes about five days.
 TXT
+    ROWS_BEFORE=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)
     OUT=$(cd workshop && tooling/generate.sh --use-case /tmp/check-usecase.txt --name _check --by "Rehearsal" 2>&1)
     case "$OUT" in
       *"0 failed"*)
         pass "a described process became a validated design"
+        # The call must leave a priced row. A generator that spends money and records nothing
+        # is the hole this course admits to having.
+        ROWS_AFTER=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)
+        LAST=$(awk -F'\t' 'END{print $11"\t"$10}' workshop/memory/usage.tsv 2>/dev/null)
+        SRC=${LAST%%	*}; USD=${LAST##*	}
+        if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && [ "$SRC" = cli ]; then
+          pass "the call was costed: \$$USD, from the CLI"
+        else
+          fail "the generation recorded no priced row" \
+               "cd workshop && make cost — the row should say source=cli" \
+               "a new row in memory/usage.tsv with source=cli" \
+               "rows ${ROWS_BEFORE}->${ROWS_AFTER}, source=${SRC:-none}"
+        fi
         # Kept, not deleted. The design it produced is the interesting part of a live run,
         # and erasing it every time is why a failure here was hard to explain.
         printf '            kept at workshop/jobs/_check — proposed.design, BRIEF.md, job.tsv\n'
