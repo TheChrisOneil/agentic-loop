@@ -1,4 +1,4 @@
-.PHONY: help start jobs rules check example broken format brief diagram flow svg generate accept status register verify scaffold test clean
+.PHONY: help start jobs rules check example broken format brief diagram flow svg generate accept status register cost verify scaffold test clean
 DESIGN ?= examples/invoices.design
 help:
 	@echo "make start                the workshop — resume a job, or begin one"
@@ -11,6 +11,7 @@ help:
 	@echo "make generate NAME=slug UC=path   a use case becomes a design and a brief"
 	@echo "make accept DESIGN=path BY=\"Name, Role\"  accept a design, by name"
 	@echo "make status DESIGN=path    is this exact design accepted?"
+	@echo "make cost                 what every model call cost, in tokens and dollars"
 	@echo "make register             the acceptance register"
 	@echo "make verify               recompute the register hash chain"
 	@echo "make scaffold DESIGN=path NAME=x    build a running loop into loops/x"
@@ -30,6 +31,12 @@ test:    ; @tooling/tests/flow.sh && echo && tooling/tests/repair-path.sh && ech
 accept:  ; @tooling/accept.sh $(DESIGN) --by "$(BY)"
 status:  ; @tooling/accept.sh --status $(DESIGN)
 register:; @tooling/accept.sh --list
+cost:
+	@[ -s memory/usage.tsv ] || { echo "no model calls recorded yet"; exit 0; }
+	@column -t -s"$$(printf '\t')" memory/usage.tsv 2>/dev/null || cat memory/usage.tsv
+	@awk -F'\t' 'NR>1 && $$10 ~ /^[0-9.]+$$/ {n++; s+=$$10; t+=$$6; c+=$$8} \
+	  END{ if(n) printf "\n  %d priced call(s)  $$%.4f  %d output tokens  %d cache reads\n", n, s, t, c; \
+	       else print "\n  no priced calls yet" }' memory/usage.tsv
 verify:  ; @tooling/accept.sh --verify
 scaffold:; @mkdir -p loops && tooling/scaffold.sh $(DESIGN) loops/$(NAME)
 brief:   ; @tooling/brief.sh $(DESIGN)

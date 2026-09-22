@@ -121,12 +121,18 @@ else
   attempt=0
   while :; do
     log generate calling "attempt $((attempt+1)), model $MODEL"
-    build_prompt | claude -p --model "$MODEL" > "$SCRATCH/raw.txt" 2>"$SCRATCH/raw.err" || true
+    build_prompt | claude -p --model "$MODEL" --output-format json \
+      > "$SCRATCH/raw.json" 2>"$SCRATCH/raw.err" || true
+    . "$HERE/lib/json.sh"
+    json_get "$SCRATCH/raw.json" result > "$SCRATCH/raw.txt" 2>/dev/null || : > "$SCRATCH/raw.txt"
+    # no parser, or an unexpected shape: fall back to treating the reply as plain text
+    [ -s "$SCRATCH/raw.txt" ] || cp "$SCRATCH/raw.json" "$SCRATCH/raw.txt"
+    "$HERE/log-cost.sh" "$SLUG" generate "$MODEL" "$SCRATCH/raw.json"
     # keep only the design: from the first @meta to the end
     awk '/^@meta/{on=1} on' "$SCRATCH/raw.txt" | sed 's/^```.*$//' > "$DESIGN"
     if [ ! -s "$DESIGN" ]; then
       log generate failed "no design in the reply"
-      echo "REFUSED: the model returned no design. See jobs/$SLUG/.scratch/raw.txt." >&2
+      echo "REFUSED: the model returned no design. See jobs/$SLUG/.scratch/raw.json." >&2
       exit 1
     fi
     if "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
@@ -168,6 +174,7 @@ echo
 echo "  jobs/$SLUG/BRIEF.md          read this first — assumptions, then the flow"
 echo "  jobs/$SLUG/proposed.design   the design itself"
 echo "  jobs/$SLUG/diagrams/         the flow, archived as mermaid and svg"
+echo "  memory/usage.tsv             what this cost, in tokens and dollars"
 echo "  jobs/$SLUG/job.tsv           what happened, in order"
 echo
 echo "  Discuss it. Then, when it is right:"

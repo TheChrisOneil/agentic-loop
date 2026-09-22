@@ -115,7 +115,20 @@ accept `--use-case <file>` in `start.sh` the way `generate.sh` already does.
 
 ---
 
-## 7. The job ledger names the configured model, not the binary that ran
+## 7. Cost is recorded for the generator only
+
+`memory/usage.tsv` covers `tooling/generate.sh`, which is the only place the workshop spends a
+model. The judgment step inside a scaffolded loop logs nothing yet — the generated
+`scripts/log-cost.sh` still takes token counts as arguments and is passed zeros.
+
+**Impact:** you can price designing a loop. You cannot yet price running one.
+
+**Fix:** have the generated judge step ask the CLI for `--output-format json` and call the same
+`log-cost.sh` the workshop uses.
+
+---
+
+## 8. The job ledger names the configured model, not the binary that ran
 
 `tooling/generate.sh` logs `GENERATE_MODEL`. When a stub `claude` is first on `PATH`, the ledger still
 reads `model claude-opus-5` while nothing of the sort was called.
@@ -126,7 +139,7 @@ reads `model claude-opus-5` while nothing of the sort was called.
 
 ---
 
-## 8. Three dead rows in the acceptance register, and the note that explains them
+## 9. Three dead rows in the acceptance register, and the note that explains them
 
 `course/workshop/memory/acceptances.tsv` rows 8, 9 and 10 record acceptances made during
 development, under the tree's former path, for jobs (`claims`, `_flowtest`) that were deleted
@@ -148,7 +161,7 @@ to its own scratch register — so no further rows of this kind can appear.
 
 ---
 
-## 9. `demo/` is hand-written, and is often assumed to be generated
+## 10. `demo/` is hand-written, and is often assumed to be generated
 
 `course/demo/` predates the workshop by a day and contains the only working logic in the repo
 — the arithmetic, the duplicate detection, the injection screen, the checksum that blocks a
@@ -165,7 +178,7 @@ a subject.
 
 ---
 
-## 10. A live generation can fail for reasons outside the repo
+## 11. A live generation can fail for reasons outside the repo
 
 `./check.sh --live` and `tooling/generate.sh` both depend on the `claude` CLI reaching a model.
 When they fail, the cause is usually not the code:
@@ -184,7 +197,7 @@ what you present. `--live` is only for rehearsing a generation in front of the r
 
 ---
 
-## 11. The deck lives outside this repo
+## 12. The deck lives outside this repo
 
 `course/deck.md` is the source of record for the content. The presented deck is a private
 Artifact, and the two are kept in step by hand.

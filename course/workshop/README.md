@@ -20,7 +20,7 @@ workshop/
   Makefile      the front door — make start, make test, make example
   tooling/      the scripts, their libraries, the schema, the method, the tests
   examples/     designs to read and validate
-  memory/       the acceptance register — the record, not the machinery
+  memory/       the acceptance register and the cost ledger — the record, not the machinery
   jobs/         one folder per engagement: use case, design, brief, job ledger
   loops/        what got built
 ```
@@ -149,6 +149,7 @@ Four controls, each tested:
 | **The validator checks the generator** | A generated design is validated before anyone sees it. This is the answer to "if your decomposition is a model, what checks it?" |
 | **One bounded repair** | A rejected design goes back with the findings, once. `REPAIRS` sets the budget |
 | **It refuses rather than ships** | Budget exhausted → the findings are printed, no brief is written, and the draft is left for a human |
+| **Every call is costed** | `memory/usage.tsv` records input, output, **thinking** and **cache** tokens plus the dollar figure the CLI reported. `make cost` totals it |
 
 **Assumptions come first.** The method requires every gap the model filled to be declared, and
 the brief prints them above everything else. A design whose assumptions are buried reads as

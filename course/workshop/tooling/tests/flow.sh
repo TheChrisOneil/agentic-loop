@@ -7,10 +7,11 @@ W="$(cd "$T/.." && pwd)"                # the workshop
 export PATH="$T/tests/fake-bin-good:$PATH"
 # Its own acceptance register: the real one is append-only and must not carry test rows.
 export ACCEPT_REGISTER="$(mktemp -t acceptances)"
+export USAGE_LEDGER="$(mktemp -t usage)"
 JOB=_flowtest
 rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"
 
-fail() { echo "FAIL: $1"; rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER"; exit 1; }
+fail() { echo "FAIL: $1"; rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER" "$USAGE_LEDGER"; exit 1; }
 
 # 1. a new job, stopping at the decision
 { echo "$JOB"; echo "Test Owner, QA"; cat "$T/tests/fixtures/use-case.txt"; } \
@@ -40,5 +41,5 @@ TICK=$( cd "$W/loops/$JOB" && make clean >/dev/null && ./loop.sh )   # captured,
 case "$TICK" in *"worked 3"*) ;; *) fail "the generated loop does not tick" ;; esac
 echo "PASS: accepted, built, and the generated loop ticks"
 
-rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER"
+rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER" "$USAGE_LEDGER"
 echo "PASS: cleaned up"

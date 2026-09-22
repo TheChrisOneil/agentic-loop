@@ -4,6 +4,7 @@
 set -uo pipefail
 T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
 W="$(cd "$T/.." && pwd)"                # the workshop
+export USAGE_LEDGER="$(mktemp -t usage)"
 rm -rf "$W/jobs/_repairtest"
 PATH="$T/tests/fake-bin:$PATH" GENERATE_MODEL=stub-model \
   "$T/generate.sh" --use-case "$T/tests/fixtures/use-case.txt" --name _repairtest --by "Test" >/dev/null 2>&1
