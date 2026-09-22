@@ -73,14 +73,15 @@ TXT
 # ---------------------------------------------------------------- generate
 run_generate() { # slug notes-file
   local slug="$1" notes="${2:-}" args
+  mkdir -p "$JOBS/$slug/.scratch"
   args=(--name "$slug" --use-case "$JOBS/$slug/use-case.txt" --by "$(cat "$JOBS/$slug/owner")")
   [ -n "$notes" ] && args+=(--notes "$notes")
   if [ -n "${RECORDED:-}" ]; then args=(--name "$slug" --recorded "$RECORDED" --by "$(cat "$JOBS/$slug/owner")"); fi
-  if ! "$HERE/generate.sh" "${args[@]}" >/dev/null 2>"$JOBS/$slug/generate.err"; then
+  if ! "$HERE/generate.sh" "${args[@]}" >/dev/null 2>"$JOBS/$slug/.scratch/generate.err"; then
     echo
     echo "  The design could not be produced. What the validator said:"
     echo
-    sed 's/^/    /' "$JOBS/$slug/generate.err" | head -20
+    sed 's/^/    /' "$JOBS/$slug/.scratch/generate.err" | head -20
     echo
     echo "  The job is kept. Next human action: describe the process again with the missing"
     echo "  detail, or repair jobs/$slug/proposed.design by hand and run ./start.sh --job $slug."

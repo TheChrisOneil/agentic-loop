@@ -114,15 +114,18 @@ else
       echo "Emit a corrected design. Fix every ERROR. Change nothing else."
     fi
   }
+  # The unedited model reply and its stderr are debugging scratch, not part of the job record.
+  # They live under .scratch/ and are ignored by git.
+  SCRATCH="$JOB/.scratch"; mkdir -p "$SCRATCH"
   attempt=0
   while :; do
     log generate calling "attempt $((attempt+1)), model $MODEL"
-    build_prompt | claude -p --model "$MODEL" > "$JOB/raw.txt" 2>"$JOB/raw.err" || true
+    build_prompt | claude -p --model "$MODEL" > "$SCRATCH/raw.txt" 2>"$SCRATCH/raw.err" || true
     # keep only the design: from the first @meta to the end
-    awk '/^@meta/{on=1} on' "$JOB/raw.txt" | sed 's/^```.*$//' > "$DESIGN"
+    awk '/^@meta/{on=1} on' "$SCRATCH/raw.txt" | sed 's/^```.*$//' > "$DESIGN"
     if [ ! -s "$DESIGN" ]; then
       log generate failed "no design in the reply"
-      echo "REFUSED: the model returned no design. See jobs/$SLUG/raw.txt." >&2
+      echo "REFUSED: the model returned no design. See jobs/$SLUG/.scratch/raw.txt." >&2
       exit 1
     fi
     if "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
