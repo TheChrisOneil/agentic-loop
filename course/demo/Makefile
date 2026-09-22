@@ -3,6 +3,8 @@
 help:
 	@echo "make tick          run one night of the loop"
 	@echo "make report        what happened, from the ledger"
+	@echo "make units         the units this night was decomposed into"
+	@echo "make findings      what the arithmetic concluded about each one"
 	@echo "make trust         what each kind of call has earned"
 	@echo "make goals         re-check every standing goal (the daily sweep)"
 	@echo "make demo-tamper   edit a proof, watch delivery block"
@@ -12,8 +14,8 @@ help:
 	@echo "make clean         forget everything and start the night over"
 
 tick: ; @./loop.sh
-units: ; @column -t -s'\t' memory/units.tsv
-findings: ; @column -t -s'\t' memory/findings.tsv
+units:	; @column -t -s'	' memory/units.tsv 2>/dev/null || cat memory/units.tsv
+findings: ; @column -t -s'	' memory/findings.tsv 2>/dev/null || cat memory/findings.tsv
 trust: ; @./scripts/trust-log.sh --render
 goals: ; @./scripts/verify-goals.sh
 report:

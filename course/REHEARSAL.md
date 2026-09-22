@@ -185,9 +185,9 @@ make diagram DESIGN=examples/invoices.design | head -20
 
 **Expect:** a `sequenceDiagram`, and three `alt` blocks — one per gate.
 
-☐ Optional, if `mmdc` is installed: `make svg DESIGN=examples/invoices.design` writes
-`examples/diagrams/sequence.svg` and `examples/diagrams/flow.svg`. Every generated job archives
-its own diagrams automatically, so this is only for a design that has no job.
+☐ Optional: `make brief DESIGN=examples/invoices.design` writes `examples/BRIEF.md` and
+`examples/diagrams/` — SVG too, if `mmdc` is installed. `make clean` removes them. Every
+generated job archives its own diagrams already, so this is only for a design with no job.
 
 ## 10 · The whole pipeline  ·  4 min
 

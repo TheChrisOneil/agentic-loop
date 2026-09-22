@@ -13,50 +13,22 @@ Layout: the scripts live in `course/workshop/tooling/`, the acceptance register 
 
 ---
 
-## 1. A missing `column` reports "no data" instead of "I could not look"
+## 1. `column` is assumed present, and its absence now degrades rather than lies
 
-**Severity: correctness.** This is the only entry that can mislead a reader.
+`column` formats the tables in `make ledger`, `make cost`, `make units`, `make findings` and
+`accept.sh --list`. It is util-linux: present on macOS and WSL, absent in Git Bash.
 
-Every scaffolded loop's Makefile, and the four already generated:
+Every call now falls back to `cat`, so a missing `column` costs you alignment and nothing else.
+It no longer reports "no ledger yet" when the ledger is present — that reading of absence for
+"I could not look" was rule 3 broken in our own code, and it is fixed.
 
-```make
-ledger: ; @column -t -s'\t' memory/ledger.tsv 2>/dev/null || echo "no ledger yet — run make tick"
-cost:   ; @column -t -s'\t' memory/usage.tsv  2>/dev/null || echo "no usage yet"
-```
+**Impact:** cosmetic.
 
-On a machine without `column`, `make ledger` prints *"no ledger yet"* while the ledger sits in
-`memory/ledger.tsv`. The tool reports absence when it means it could not read.
-
-That is rule 3 of the five — *a check that did not run is not a check that passed* — broken in
-our own code.
-
-**Where:** `course/workshop/tooling/scaffold.sh` (the generator of these lines), and the same two lines
-in `loops/refunds/Makefile`, `loops/renewals/Makefile`, `loops/support-triage/Makefile`,
-`loops/warranty/Makefile`.
-
-**Fix:** distinguish the two cases — test the file's existence first, then fall back to `cat`
-when `column` is absent, and say which happened.
+**Fix:** none needed. Recorded because a reader on Git Bash will notice unformatted tables.
 
 ---
 
-## 2. `column` with no fallback at all
-
-Three display-only call sites abort rather than degrade:
-
-```
-course/demo/Makefile                          make units, make findings
-course/workshop/tooling/tests/repair-path.sh
-```
-
-`column` is util-linux. Present on macOS and on WSL, absent in Git Bash.
-
-**Impact:** cosmetic. Nothing decides anything from these.
-
-**Fix:** `|| cat` on each.
-
----
-
-## 3. `shasum` is assumed present
+## 2. `shasum` is assumed present
 
 Ten call sites use `shasum -a 256`. It is a perl script — always on macOS, usually on Ubuntu.
 `sha256sum` is coreutils and is always on Linux.
@@ -77,7 +49,7 @@ produce identical digests, so existing register rows still verify — worth prov
 
 ---
 
-## 4. Untested on GNU awk and on WSL
+## 3. Untested on GNU awk and on WSL
 
 The code is 155 awk invocations deep and has only ever run against BSD awk on macOS. Two
 BSD-versus-GNU differences were hit and fixed during the build (a builtin name collision on
@@ -90,7 +62,7 @@ BSD-versus-GNU differences were hit and fixed during the build (a builtin name c
 
 ---
 
-## 5. Native Windows and Git Bash are unsupported
+## 4. Native Windows and Git Bash are unsupported
 
 Everything is bash plus `make`. PowerShell will not run it. Git Bash lacks `make` by default
 and lacks `column`.
@@ -102,7 +74,7 @@ account. The tooling is the instructor's.
 
 ---
 
-## 6. `tooling/start.sh` cannot be driven by a single piped stream
+## 5. `tooling/start.sh` cannot be driven by a single piped stream
 
 The intake and discussion steps read with `cat`, which consumes stdin to end-of-file. A script
 piping `slug, owner, use-case, choice` in one stream loses everything after the use case.
@@ -115,7 +87,7 @@ accept `--use-case <file>` in `start.sh` the way `generate.sh` already does.
 
 ---
 
-## 7. Cost is recorded for the generator only
+## 6. Cost is recorded for the generator only
 
 `memory/usage.tsv` covers `tooling/generate.sh`, which is the only place the workshop spends a
 model. The judgment step inside a scaffolded loop logs nothing yet — the generated
@@ -129,7 +101,7 @@ yet price running one, so the `run` line reads zero and says so rather than impl
 
 ---
 
-## 8. The job ledger names the configured model, not the binary that ran
+## 7. The job ledger names the configured model, not the binary that ran
 
 `tooling/generate.sh` logs `GENERATE_MODEL`. When a stub `claude` is first on `PATH`, the ledger still
 reads `model claude-opus-5` while nothing of the sort was called.
@@ -140,7 +112,7 @@ reads `model claude-opus-5` while nothing of the sort was called.
 
 ---
 
-## 9. Three dead rows in the acceptance register, and the note that explains them
+## 8. Three dead rows in the acceptance register, and the note that explains them
 
 `course/workshop/memory/acceptances.tsv` rows 8, 9 and 10 record acceptances made during
 development, under the tree's former path, for jobs (`claims`, `_flowtest`) that were deleted
@@ -162,7 +134,7 @@ to its own scratch register — so no further rows of this kind can appear.
 
 ---
 
-## 10. `demo/` is hand-written, and is often assumed to be generated
+## 9. `demo/` is hand-written, and is often assumed to be generated
 
 `course/demo/` predates the workshop by a day and contains the only working logic in the repo
 — the arithmetic, the duplicate detection, the injection screen, the checksum that blocks a
@@ -179,7 +151,7 @@ a subject.
 
 ---
 
-## 11. A live generation can fail for reasons outside the repo
+## 10. A live generation can fail for reasons outside the repo
 
 `./check.sh --live` and `tooling/generate.sh` both depend on the `claude` CLI reaching a model.
 When they fail, the cause is usually not the code:
@@ -198,7 +170,7 @@ what you present. `--live` is only for rehearsing a generation in front of the r
 
 ---
 
-## 12. The deck lives outside this repo
+## 11. The deck lives outside this repo
 
 `course/deck.md` is the source of record for the content. The presented deck is a private
 Artifact, and the two are kept in step by hand.
