@@ -1,3 +1,4 @@
 date	job	kind	stage	model	in	out	thinking	cache_read	cache_write	usd	source
 2026-09-22	_check	nre	generate	claude-opus-5	2	2030	0	25248	15285	0.216234	cli
 2026-09-22	_check	nre	generate	claude-opus-5	2	2093	0	25248	15300	0.217959	cli
+2026-09-22	_check	nre	generate	claude-opus-5	2	2097	0	25248	15301	0.218069	cli

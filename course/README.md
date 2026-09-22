@@ -12,6 +12,7 @@ course/
   facilitator-guide.md         the minute-by-minute run sheet, with the demo cues
   check.sh                     run this first — checks everything a machine can check
   REHEARSAL.md                 then this — every step, every expected line, and what to say
+  facility-request-email.md    the room and network requirements, as a draft email
   exercise/
     APPLICATION-NOTES.md       the hands-on path, command by command, for students
     worksheet.md               the student deliverable — one page, six boxes

@@ -3,8 +3,11 @@
 Every command below has been run. Copy them one at a time and read what comes back; the point
 is the output, not the typing.
 
-**What you need:** a laptop with a terminal, `git`, and one LLM account in a browser — the free
-tier is fine. No installation. No API key.
+**What you need:** a laptop with a terminal and `git`.
+
+For part B you need **one of**: the `claude` CLI with a key (your instructor may provide a
+class key), or an LLM account in a browser — the free tier is fine. The CLI path measures what
+the design cost; the browser path estimates it. Both produce the same design.
 
 **macOS and Linux** work as written. **Windows:** use WSL2, or pair with somebody who has a Mac.
 
@@ -107,39 +110,85 @@ What helps most:
 
 No format. Write it as you would explain it to a new colleague. Six to ten sentences.
 
-### B2 · Read the method you are about to use
+### B2 · Read the method the wrapper will use
 
 ```bash
 cat tooling/method/GENERATE.md
 ```
 
 This is a **skill** — a written procedure a model follows: what to check, in what order, what
-disqualifies, what to produce. It is rung 2 of the ladder from the deck. Skim it; you are about
-to hand it to your assistant.
+disqualifies, what to produce. It is rung 2 of the ladder from the deck. Skim it. The wrapper
+sends it, so the same use case produces the same shape twice.
 
-### B3 · Turn your use case into a design
-
-Open ChatGPT or Claude in your browser. Paste **the whole of `GENERATE.md`**, then below it
-paste your `use-case.txt`, then send.
-
-The reply will start with `@meta`. Save it exactly as it comes back:
+### B3 · Run the wrapper
 
 ```bash
-pbpaste > jobs/team-N/proposed.design      # macOS, after copying the reply
+tooling/generate.sh --use-case jobs/team-N/use-case.txt --name team-N --by "Your Name"
 ```
 
-On Linux, or if that fails, open `jobs/team-N/proposed.design` in an editor and paste.
+It does four things you would otherwise do by hand:
 
-**Do not tidy it up.** The next step judges what the model produced, not what you would have
-preferred it to produce.
+1. **Screens your text by a rule** before any model reads it — too short, too long, or text
+   addressed to the system is refused with the next action named
+2. **Sends the method and your use case**, and takes the design out of the reply
+3. **Validates it, and iterates.** A rejected design goes back with the validator's findings,
+   once. `REPAIRS=2` buys another round
+4. **Records what it cost** — input, output, thinking and cache tokens, and the dollar figure
 
-### B4 · Let the validator judge it
+```bash
+make cost
+```
+
+```
+NRE   1 call(s)  $0.2181   designing the loop, paid once
+RUN   0 call(s)  $0.0000   running it, per unit of work
+```
+
+**That NRE figure is the point.** Designing this loop cost about twenty cents, once. It is not
+a running cost, and the deck's cost-per-completed-decision is the other number entirely.
+Measure the first or you will quote the second wrong.
+
+---
+
+#### B3 alternative · no CLI? Paste, then record what you can
+
+If you have a browser assistant rather than the `claude` CLI: paste the whole of
+`tooling/method/GENERATE.md`, then your `use-case.txt`, and save the reply exactly as it comes
+back — it starts with `@meta`.
+
+```bash
+pbpaste > jobs/team-N/proposed.design      # macOS. Linux: open an editor and paste
+```
+
+**Do not tidy it up.** The next step judges what the model produced.
+
+Then record the call, because a browser reports no numbers:
+
+```bash
+cat tooling/method/GENERATE.md jobs/team-N/use-case.txt > /tmp/prompt.txt
+tooling/cost-estimate.sh team-N /tmp/prompt.txt jobs/team-N/proposed.design "claude.ai"
+```
+
+It estimates tokens from the text and records the row as **`source=estimated`** with no dollar
+figure. That is deliberate: a price this script guessed would read exactly like a price
+somebody measured. The measured figure for the same call, from the instructor's ledger, is
+about **$0.22**.
+
+Notice what is missing from your row — **thinking tokens and cache reads are `unknown`**, and
+they are where the real cost of a long prompt lives. That gap is the lesson: what you cannot
+measure, you cannot manage, and a browser will not tell you.
+
+### B4 · Read what the validator said
+
+The wrapper already ran it — and iterated once if the first design failed. Run it yourself to
+see the twenty-one rules:
 
 ```bash
 tooling/validate.sh jobs/team-N/proposed.design
 ```
 
-Twenty-one rules, each deterministic. You want `0 failed`.
+You want `0 failed`. If you took the paste route, this is the first time your design is
+judged, and a failure here is normal.
 
 Every failure names the fix. The four worth understanding when you see them:
 
@@ -153,6 +202,10 @@ Every failure names the fix. The four worth understanding when you see them:
 ### B5 · Fix and re-run
 
 Edit the design, run B4 again. Repeat until it passes.
+
+```bash
+cat jobs/team-N/job.tsv     # what the wrapper did, in order, including any repair round
+```
 
 **This is the exercise.** Arguing with the validator is where the hour lands — every rule it
 enforces is one the deck argued for.
