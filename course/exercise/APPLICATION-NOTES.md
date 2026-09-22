@@ -97,6 +97,7 @@ cd ..
 
 ```bash
 cd workshop
+make help                     # every command, in one list
 mkdir -p jobs/team-N          # use your team number
 ```
 
@@ -123,7 +124,7 @@ sends it, so the same use case produces the same shape twice.
 ### B3 · Run the wrapper
 
 ```bash
-tooling/generate.sh --use-case jobs/team-N/use-case.txt --name team-N --by "Your Name"
+make generate NAME=team-N UC=jobs/team-N/use-case.txt
 ```
 
 It does four things you would otherwise do by hand:
@@ -166,7 +167,7 @@ Then record the call, because a browser reports no numbers:
 
 ```bash
 cat tooling/method/GENERATE.md jobs/team-N/use-case.txt > /tmp/prompt.txt
-tooling/cost-estimate.sh team-N /tmp/prompt.txt jobs/team-N/proposed.design "claude.ai"
+make estimate NAME=team-N PROMPT=/tmp/prompt.txt REPLY=jobs/team-N/proposed.design MODEL=claude.ai
 ```
 
 It estimates tokens from the text and records the row as **`source=estimated`** with no dollar
@@ -184,7 +185,7 @@ The wrapper already ran it — and iterated once if the first design failed. Run
 see the twenty-one rules:
 
 ```bash
-tooling/validate.sh jobs/team-N/proposed.design
+make check DESIGN=jobs/team-N/proposed.design
 ```
 
 You want `0 failed`. If you took the paste route, this is the first time your design is
@@ -213,7 +214,7 @@ enforces is one the deck argued for.
 ### B6 · Write it up, so somebody else can evaluate it
 
 ```bash
-tooling/brief.sh jobs/team-N/proposed.design
+make brief DESIGN=jobs/team-N/proposed.design
 ```
 
 This writes two things beside your design, both produced **by a rule** — nothing in them is
@@ -239,7 +240,7 @@ machinery and how much is judgment.
 ### C1 · Accept it, by name
 
 ```bash
-tooling/accept.sh jobs/team-N/proposed.design --by "Your Name, Your Role"
+make accept DESIGN=jobs/team-N/proposed.design BY="Your Name, Your Role"
 ```
 
 It shows you what you are accepting and asks you to type `I accept`. Anything else records
@@ -250,7 +251,7 @@ nothing and builds nothing.
 ### C2 · Build the loop
 
 ```bash
-tooling/scaffold.sh jobs/team-N/proposed.design loops/team-N
+make scaffold DESIGN=jobs/team-N/proposed.design NAME=team-N
 ```
 
 It refuses to build a design nobody accepted. That is C1 doing its job.

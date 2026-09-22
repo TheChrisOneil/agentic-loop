@@ -1,5 +1,6 @@
-.PHONY: help start jobs rules check example broken format brief diagram flow generate accept status register cost verify scaffold test clean
+.PHONY: help start jobs rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
 DESIGN ?= examples/invoices.design
+MODEL  ?= browser-assistant
 help:
 	@echo "make start                the workshop — resume a job, or begin one"
 	@echo "make jobs                 every job and where it stopped"
@@ -11,6 +12,7 @@ help:
 	@echo "make accept DESIGN=path BY=\"Name, Role\"  accept a design, by name"
 	@echo "make status DESIGN=path    is this exact design accepted?"
 	@echo "make cost                 what every model call cost, in tokens and dollars"
+	@echo "make estimate NAME=slug PROMPT=f REPLY=f   record a pasted call, estimated"
 	@echo "make register             the acceptance register"
 	@echo "make verify               recompute the register hash chain"
 	@echo "make scaffold DESIGN=path NAME=x    build a running loop into loops/x"
@@ -37,6 +39,10 @@ accept:
 	@tooling/accept.sh $(DESIGN) --by "$(BY)"
 status:  ; @tooling/accept.sh --status $(DESIGN)
 register:; @tooling/accept.sh --list
+estimate:
+	@[ -n "$(NAME)" ] && [ -n "$(PROMPT)" ] && [ -n "$(REPLY)" ] || \
+	  { echo "make estimate NAME=<slug> PROMPT=<prompt file> REPLY=<design file>"; exit 64; }
+	@tooling/cost-estimate.sh $(NAME) $(PROMPT) $(REPLY) "$(MODEL)"
 cost:
 	@if [ ! -s memory/usage.tsv ]; then echo "no model calls recorded yet"; else \
 	   column -t -s"$$(printf '\t')" memory/usage.tsv 2>/dev/null || cat memory/usage.tsv; \

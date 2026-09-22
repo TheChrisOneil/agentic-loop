@@ -134,7 +134,9 @@ done
 
 # ---------------------------------------------------------------- 3. the materials
 echo; echo "THE MATERIALS"
-for f in deck.md facilitator-guide.md REHEARSAL.md exercise/worksheet.md exercise/helper-prompts.md exercise/discussion.md; do
+for f in deck.md facilitator-guide.md REHEARSAL.md facility-request-email.md \
+         exercise/worksheet.md exercise/helper-prompts.md exercise/discussion.md \
+         exercise/APPLICATION-NOTES.md; do
   [ -s "$f" ] && pass "$f is present" || fail "$f is missing or empty" "restore it from git"
 done
 
