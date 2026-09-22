@@ -12,7 +12,7 @@ help:
 	@echo "make status DESIGN=path    is this exact design accepted?"
 	@echo "make register             the acceptance register"
 	@echo "make verify               recompute the register hash chain"
-	@echo "make scaffold DESIGN=path OUT=dir   build a running loop from a design"
+	@echo "make scaffold DESIGN=path NAME=x    build a running loop into loops/x"
 	@echo "make example              validate the worked example"
 	@echo "make broken               a design that fails, for the session"
 	@echo "make rules                the rule list, in plain language"
@@ -30,7 +30,7 @@ accept:  ; @./accept.sh $(DESIGN) --by "$(BY)"
 status:  ; @./accept.sh --status $(DESIGN)
 register:; @./accept.sh --list
 verify:  ; @./accept.sh --verify
-scaffold:; @./scaffold.sh $(DESIGN) $(OUT)
+scaffold:; @mkdir -p loops && ./scaffold.sh $(DESIGN) loops/$(NAME)
 diagram: ; @./render.sh $(DESIGN)
 flow:    ; @./render.sh --flow $(DESIGN)
 svg:

@@ -89,8 +89,8 @@ Verified with the Mermaid CLI: both views of `examples/invoices.design` render c
 A validated design becomes a running loop.
 
 ```bash
-./scaffold.sh examples/refunds.design refunds
-cd refunds && make tick        # it runs now, with every step a placeholder
+./scaffold.sh examples/refunds.design loops/refunds
+cd loops/refunds && make tick        # it runs now, with every step a placeholder
 make todo                      # what is left to implement
 ```
 
@@ -182,9 +182,9 @@ Each is a validated design plus the loop scaffolded from it. All three tick end 
 
 | Folder | Use case | What it exercises |
 |---|---|---|
-| `refunds/` | Refund requests over 500 dollars | **A person in the judgment seat** — no model anywhere. `JUDGE_MODE=human make tick` |
-| `renewals/` | Contract renewals with changed terms | **A judgment decomposition**, so V7 forces the design to say what checks it |
-| `support-triage/` | Inbound messages grouped into cases | **An intake gate as a security control** — credentials and unknown senders stop at step 4 |
+| `loops/refunds/` | Refund requests over 500 dollars | **A person in the judgment seat** — no model anywhere. `JUDGE_MODE=human make tick` |
+| `loops/renewals/` | Contract renewals with changed terms | **A judgment decomposition**, so V7 forces the design to say what checks it |
+| `loops/support-triage/` | Inbound messages grouped into cases | **An intake gate as a security control** — credentials and unknown senders stop at step 4 |
 
 ## `make start` — the whole thing, as one conversation
 
@@ -217,8 +217,8 @@ intake  ->  designed  ->  discussing  ->  accepted  ->  built
 ./generate.sh --use-case process.txt --name warranty    # free text  -> design + brief
 #   read jobs/warranty/BRIEF.md, argue with it, edit the design
 ./accept.sh jobs/warranty/proposed.design --by "R. Nakamura, Warranty Operations Lead"
-./scaffold.sh jobs/warranty/proposed.design warranty
-cd warranty && make tick
+./scaffold.sh jobs/warranty/proposed.design loops/warranty
+cd loops/warranty && make tick
 ```
 
 Verified on a fresh use case: 250 warranty claims a month, described in plain prose, became a

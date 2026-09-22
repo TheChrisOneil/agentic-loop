@@ -7,9 +7,9 @@ export PATH="$W/tests/fake-bin-good:$PATH"
 # Its own acceptance register: the real one is append-only and must not carry test rows.
 export ACCEPT_REGISTER="$(mktemp -t acceptances)"
 JOB=_flowtest
-rm -rf "$W/jobs/$JOB" "$W/$JOB"
+rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"
 
-fail() { echo "FAIL: $1"; rm -rf "$W/jobs/$JOB" "$W/$JOB"; rm -f "$ACCEPT_REGISTER"; exit 1; }
+fail() { echo "FAIL: $1"; rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER"; exit 1; }
 
 # 1. a new job, stopping at the decision
 { echo "$JOB"; echo "Test Owner, QA"; cat "$W/tests/fixtures/use-case.txt"; } \
@@ -27,17 +27,17 @@ echo "PASS: a revision kept the old version and changed the design"
 
 # 3. a refused acceptance builds nothing
 { echo "a"; echo "sure"; } | "$W/start.sh" --job "$JOB" >/dev/null 2>&1
-[ -d "$W/$JOB" ] && fail "a folder was built without acceptance"
+[ -d "$W/loops/$JOB" ] && fail "a folder was built without acceptance"
 echo "PASS: a refused acceptance built nothing"
 
 # 4. acceptance, then the build
 { echo "a"; echo "I accept"; } | "$W/start.sh" --job "$JOB" >/dev/null 2>&1
 [ "$(cat "$W/jobs/$JOB/state")" = built ] || fail "state is not 'built'"
-[ -x "$W/$JOB/loop.sh" ] || fail "no loop was generated"
-[ -f "$W/$JOB/design/ACCEPTANCE.md" ] || fail "the acceptance did not travel with the build"
-TICK=$( cd "$W/$JOB" && make clean >/dev/null && ./loop.sh )   # captured, not piped: grep -q
+[ -x "$W/loops/$JOB/loop.sh" ] || fail "no loop was generated"
+[ -f "$W/loops/$JOB/design/ACCEPTANCE.md" ] || fail "the acceptance did not travel with the build"
+TICK=$( cd "$W/loops/$JOB" && make clean >/dev/null && ./loop.sh )   # captured, not piped: grep -q
 case "$TICK" in *"worked 3"*) ;; *) fail "the generated loop does not tick" ;; esac
 echo "PASS: accepted, built, and the generated loop ticks"
 
-rm -rf "$W/jobs/$JOB" "$W/$JOB"; rm -f "$ACCEPT_REGISTER"
+rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"; rm -f "$ACCEPT_REGISTER"
 echo "PASS: cleaned up"

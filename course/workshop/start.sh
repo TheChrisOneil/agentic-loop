@@ -176,25 +176,26 @@ accept_it() { # slug
   set_state "$slug" accepted "$(cat "$JOBS/$slug/owner")"
   echo
   rule; echo "  4. BUILDING IT"; rule; echo
-  if ! "$HERE/scaffold.sh" --force "$JOBS/$slug/proposed.design" "$HERE/$slug"; then
+  mkdir -p "$HERE/loops"
+  if ! "$HERE/scaffold.sh" --force "$JOBS/$slug/proposed.design" "$HERE/loops/$slug"; then
     set_state "$slug" accepted "scaffold refused"; exit 1
   fi
-  set_state "$slug" built "$slug/"
+  set_state "$slug" built "loops/$slug/"
   echo
-  ( cd "$HERE/$slug" && make tick ) || true
+  ( cd "$HERE/loops/$slug" && make tick ) || true
   echo
   rule; echo "  DONE"; rule
   cat <<TXT
 
-  Your loop is in  $slug/  and it runs today, with every step a placeholder.
+  Your loop is in  loops/$slug/  and it runs today, with every step a placeholder.
 
-    cd $slug
+    cd loops/$slug
     make todo     what is left to implement
     make ledger   what happened
     make tick     run it again
 
   The design it was built from, the brief, and who accepted it travel with it in
-  $slug/design/. Change the design and the acceptance stops covering it.
+  loops/$slug/design/. Change the design and the acceptance stops covering it.
 
 TXT
 }
@@ -210,7 +211,7 @@ resume() { # slug
                 run_generate "$slug" ""; present "$slug" ;;
     designed|discussing) present "$slug" ;;
     accepted)   echo; echo "  Accepted but not built."; accept_it "$slug" ;;
-    built)      echo; echo "  Already built. The loop is in $slug/."; echo ;;
+    built)      echo; echo "  Already built. The loop is in loops/$slug/."; echo ;;
     *)          echo; echo "  This job is in an unknown state. Its file is jobs/$slug/state." ;;
   esac
 }

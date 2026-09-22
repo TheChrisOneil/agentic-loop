@@ -7,6 +7,8 @@
 #
 #   ./scaffold.sh <design file> <output directory>
 #   ./scaffold.sh --force <design> <dir>    overwrite an existing directory
+#
+# By convention the output goes in loops/<name>/ — the tooling and what it builds stay apart.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 FORCE=0

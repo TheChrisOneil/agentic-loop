@@ -25,7 +25,8 @@ That is rule 3 of the five — *a check that did not run is not a check that pas
 our own code.
 
 **Where:** `course/workshop/scaffold.sh` (the generator of these lines), and the same two lines
-in `refunds/Makefile`, `renewals/Makefile`, `support-triage/Makefile`, `warranty/Makefile`.
+in `loops/refunds/Makefile`, `loops/renewals/Makefile`, `loops/support-triage/Makefile`,
+`loops/warranty/Makefile`.
 
 **Fix:** distinguish the two cases — test the file's existence first, then fall back to `cat`
 when `column` is absent, and say which happened.
@@ -61,7 +62,7 @@ Ten call sites use `shasum -a 256`. It is a perl script — always on macOS, usu
 | `course/demo/steps/8-prove.sh:36` | Writes the proof checksum |
 | `course/demo/steps/9-deliver.sh:11` | Re-checks it before delivery |
 | `course/workshop/scaffold.sh:275` | The line generated into every scaffolded prove step |
-| `refunds/`, `renewals/`, `support-triage/`, `warranty/` prove steps | The same line, already written out |
+| `loops/*/` prove steps | The same line, already written out |
 
 **Impact:** on a host without perl, proof writing and the acceptance register both fail.
 
