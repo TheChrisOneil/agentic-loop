@@ -1,4 +1,4 @@
-.PHONY: help job method history show start jobs rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
+.PHONY: help job method history show start jobs revise rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
 DESIGN ?= examples/invoices.design
 MODEL  ?= browser-assistant
 help:
@@ -13,6 +13,7 @@ help:
 	@echo "make flow DESIGN=path     a Mermaid flowchart, colored by step type"
 	@echo "make brief DESIGN=path    write BRIEF.md and diagrams/ beside a design (svg if mmdc)"
 	@echo "make generate NAME=slug UC=path   a use case becomes a design and a brief"
+	@echo "make revise NAME=slug ASK=\"...\"   ask for a change; the old version is kept"
 	@echo "make accept DESIGN=path BY=\"Name, Role\"  accept a design, by name"
 	@echo "make status DESIGN=path    is this exact design accepted?"
 	@echo "make cost                 what every model call cost, in tokens and dollars"
@@ -73,6 +74,9 @@ accept:
 	@tooling/accept.sh $(DESIGN) --by "$(BY)"
 status:  ; @tooling/accept.sh --status $(DESIGN)
 register:; @tooling/accept.sh --list
+revise:
+	@[ -n "$(NAME)" ] || { echo "make revise NAME=<slug> ASK=\"what should change\""; exit 64; }
+	@tooling/revise.sh $(NAME) $(ASK)
 estimate:
 	@[ -n "$(NAME)" ] && [ -n "$(PROMPT)" ] && [ -n "$(REPLY)" ] || \
 	  { echo "make estimate NAME=<slug> PROMPT=<prompt file> REPLY=<design file>"; exit 64; }

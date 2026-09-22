@@ -49,7 +49,8 @@ if [ -n "$RECORDED" ]; then
 else
   if [ -n "$UC" ]; then
     [ -f "$UC" ] || { echo "no such use case file: $UC" >&2; exit 2; }
-    cp "$UC" "$JOB/use-case.txt"
+    # It may already BE the job's use case — copying a file onto itself is an error, not a no-op.
+    [ "$(cd "$(dirname "$UC")" && pwd)/$(basename "$UC")" = "$JOB/use-case.txt" ] || cp "$UC" "$JOB/use-case.txt"
   else
     echo "Describe the business process. Volume, who does it today, what the exceptions are,"
     echo "and what goes wrong. End with Ctrl-D."
@@ -105,6 +106,16 @@ else
       echo "## Changes the reviewer asked for. These override your earlier choices."
       echo
       cat "$NOTES"
+      echo
+      echo
+      echo "## The design as it stands"
+      echo
+      cat "$DESIGN"
+      echo
+      echo "Emit that design again with the requested changes applied, and their consequences."
+      echo "Leave every other line byte-identical — the same step names, ids, wording and"
+      echo "assumptions. The reviewer reads a diff. A design rewritten end to end hides the"
+      echo "change inside the noise and is the wrong answer even when it is a better design."
     fi
     echo "The author to record in @meta is: $BY"
     echo "The date to record in @meta is: $(date +%F)"

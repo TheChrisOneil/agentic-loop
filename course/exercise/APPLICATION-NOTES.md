@@ -167,16 +167,52 @@ You want `0 failed`. Every failure names the fix. The four worth understanding:
 | **V15** | a gate condition with no number, comparison or "never" |
 | **V17** | a design where the *model* writes the proof |
 
-### B5 · Fix and re-run
+### B5 · Argue with it
 
-Edit the design, run B4 again. Repeat until it passes.
+Two ways to change the design, and they are for different things.
+
+**Ask the system to change it.** This is the one to use first:
 
 ```bash
-make history NAME=team-N      # what the wrapper did, in order, including any repair round
+make revise NAME=team-N ASK="The unit should be one claim, not one claim line. And the fan-out is too wide for two clerks."
 ```
 
-**This is the exercise.** Arguing with the validator is where the hour lands — every rule it
-enforces is one the deck argued for.
+Every revision:
+
+- **keeps the version you read** as `proposed.v1.design`, `v2`, and so on
+- **records what you asked** in `notes.txt`
+- **shows you the diff** — only what moved, because the system is told to leave everything
+  else byte-identical
+- **costs another call**, and prints what the argument has cost so far
+
+```
+  what changed:
+      -fanout: 6
+      +fanout: 12
+      +- Assumed the supervisor sustains 12 reviews in a morning, on the supervisor's own
+         statement that eight is under their limit; confirm after two weeks of running
+      +supervisor reviews completed per morning against the fan-out of 12 | throughput | unmeasured
+
+  this job has now cost $0.9178 across 4 model call(s) — every revision is one more
+```
+
+**Three revisions is the budget.** Then it refuses and tells you to accept what you have or
+edit it yourself. That cap is the lesson as much as the design is: a conversation with a model
+has a price, and yours is on the screen.
+
+Notice what it did with the fan-out change — it did not only change the number. It recorded
+*why*, as an assumption, and added a KPI to check the claim. That is what "and their
+consequences" buys you.
+
+**Edit it yourself.** For a one-word fix, open `jobs/team-N/proposed.design`, change it, and
+re-run B4. Free, instant, and no argument required.
+
+```bash
+make history NAME=team-N      # every turn, in order: generations, repairs, revisions
+```
+
+**This is the exercise.** Arguing with the validator — and with the system — is where the hour
+lands. Every rule it enforces is one the deck argued for.
 
 ### B6 · Write it up, so somebody else can evaluate it
 

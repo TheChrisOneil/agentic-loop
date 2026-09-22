@@ -13,3 +13,7 @@ date	job	kind	stage	model	in	out	thinking	cache_read	cache_write	usd	source
 2026-09-22	_g2	nre	generate	claude-opus-5	2	3556	2026	25248	17066	0.272194	cli
 2026-09-22	Buzz	nre	generate	claude-opus-5	2	1440	0	0	30323	0.339240	cli
 2026-09-22	_check	nre	generate	claude-opus-5	2	1436	0	25248	16871	0.217244	cli
+2026-09-22	_rv	nre	generate	claude-opus-5	2	1368	0	25248	16955	0.216384	cli
+2026-09-22	_rv	nre	generate	claude-opus-5	2	1489	0	25248	17073	0.220589	cli
+2026-09-22	_rv	nre	generate	claude-opus-5	2	2203	814	25248	17202	0.239729	cli
+2026-09-22	_rv	nre	generate	claude-opus-5	2	1664	188	25248	18683	0.241064	cli
