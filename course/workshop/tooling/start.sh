@@ -9,8 +9,9 @@
 # States: intake -> designed -> discussing -> accepted -> built
 # Every transition is appended to jobs/<slug>/job.tsv. A job resumes exactly where it stopped.
 set -uo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
-JOBS="$HERE/jobs"
+HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
+ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
+JOBS="$ROOT/jobs"
 REVISION_CAP="${REVISION_CAP:-3}"
 mkdir -p "$JOBS"
 
@@ -177,13 +178,13 @@ accept_it() { # slug
   set_state "$slug" accepted "$(cat "$JOBS/$slug/owner")"
   echo
   rule; echo "  4. BUILDING IT"; rule; echo
-  mkdir -p "$HERE/loops"
-  if ! "$HERE/scaffold.sh" --force "$JOBS/$slug/proposed.design" "$HERE/loops/$slug"; then
+  mkdir -p "$ROOT/loops"
+  if ! "$HERE/scaffold.sh" --force "$JOBS/$slug/proposed.design" "$ROOT/loops/$slug"; then
     set_state "$slug" accepted "scaffold refused"; exit 1
   fi
   set_state "$slug" built "loops/$slug/"
   echo
-  ( cd "$HERE/loops/$slug" && make tick ) || true
+  ( cd "$ROOT/loops/$slug" && make tick ) || true
   echo
   rule; echo "  DONE"; rule
   cat <<TXT

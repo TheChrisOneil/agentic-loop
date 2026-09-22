@@ -84,8 +84,8 @@ writes the evidence it will be judged on.
    one worth arguing about — everything downstream inherits it.
 2. **Change it.** Edit the design file and re-run the validator. That is cheap now and
    expensive later.
-3. **Accept it**, by name, when it is right: `./accept.sh <design> --by "Name, Role"`
-4. **Build it:** `./scaffold.sh <design> <folder>` — it runs the same day.
+3. **Accept it**, by name, when it is right: `tooling/accept.sh <design> --by "Name, Role"`
+4. **Build it:** `tooling/scaffold.sh <design> loops/<name>` — it runs the same day.
 
 ## The flow it proposes
 

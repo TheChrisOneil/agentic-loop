@@ -9,7 +9,7 @@ ACCEPTED — examples/refunds.design
 ```
 
 The acceptance is of the design's **content**, not its filename. The register that
-holds it is append-only and chained — `../accept.sh --verify` recomputes it.
+holds it is append-only and chained — `../../tooling/accept.sh --verify` recomputes it.
 
 Change `design/loop.design` and this acceptance stops covering it. Scaffolding again
 will refuse until somebody accepts the new version, by name.

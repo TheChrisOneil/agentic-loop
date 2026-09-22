@@ -2,10 +2,11 @@
 # Does the generator feed the validator's findings back and try again?
 # A stub model fails the first attempt on purpose, then passes.
 set -uo pipefail
-W="$(cd "$(dirname "$0")/.." && pwd)"
+T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
+W="$(cd "$T/.." && pwd)"                # the workshop
 rm -rf "$W/jobs/_repairtest"
-PATH="$W/tests/fake-bin:$PATH" GENERATE_MODEL=stub-model \
-  "$W/generate.sh" --use-case "$W/tests/fixtures/use-case.txt" --name _repairtest --by "Test" >/dev/null 2>&1
+PATH="$T/tests/fake-bin:$PATH" GENERATE_MODEL=stub-model \
+  "$T/generate.sh" --use-case "$T/tests/fixtures/use-case.txt" --name _repairtest --by "Test" >/dev/null 2>&1
 ST=$?
 echo "--- job ledger ---"
 column -t -s$'\t' "$W/jobs/_repairtest/job.tsv"

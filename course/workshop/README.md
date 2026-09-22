@@ -13,6 +13,21 @@ make flow    DESIGN=my.design    # a Mermaid flowchart, colored by step type
 make svg     DESIGN=my.design    # both, rendered to build/*.svg
 ```
 
+## Layout
+
+```
+workshop/
+  Makefile      the front door — make start, make test, make example
+  tooling/      the scripts, their libraries, the schema, the method, the tests
+  examples/     designs to read and validate
+  memory/       the acceptance register — the record, not the machinery
+  jobs/         one folder per engagement: use case, design, brief, job ledger
+  loops/        what got built
+```
+
+Every command works through `make`. The scripts are reachable directly at
+`tooling/<name>.sh` when you want to read one.
+
 ## Why this exists
 
 Everything downstream reads a design: the diagram renders from it, the scaffolder builds from
@@ -55,13 +70,13 @@ single run, because it is the hole this course admits to having.
 
 | File | What it is |
 |---|---|
-| `schema/DESIGN-FORMAT.md` | The format specification |
-| `schema/design.template` | A blank design to copy |
-| `validate.sh` | The validator — `--tsv` for machine output, `--rules` for the list |
+| `tooling/schema/DESIGN-FORMAT.md` | The format specification |
+| `tooling/schema/design.template` | A blank design to copy |
+| `tooling/validate.sh` | The validator — `--tsv` for machine output, `--rules` for the list |
 | `examples/invoices.design` | The working loop in `../demo`, in this schema |
-| `render.sh` | The renderer — `--flow`, `--md`, `--force` |
-| `lib/parse.awk` | The parser both tools read the design with, so they cannot disagree |
-| `lib/validate.awk`, `lib/render-*.awk` | The rule set and the two views |
+| `tooling/render.sh` | The renderer — `--flow`, `--md`, `--force` |
+| `tooling/lib/parse.awk` | The parser both tools read the design with, so they cannot disagree |
+| `tooling/lib/validate.awk`, `tooling/lib/render-*.awk` | The rule set and the two views |
 | `examples/broken.design` | Fails 14 checks. Teaching material |
 
 ## The renderer
@@ -89,7 +104,7 @@ Verified with the Mermaid CLI: both views of `examples/invoices.design` render c
 A validated design becomes a running loop.
 
 ```bash
-./scaffold.sh examples/refunds.design loops/refunds
+tooling/scaffold.sh examples/refunds.design loops/refunds
 cd loops/refunds && make tick        # it runs now, with every step a placeholder
 make todo                      # what is left to implement
 ```
@@ -117,12 +132,12 @@ It refuses an invalid design, and refuses to overwrite a directory without `--fo
 ## The generator
 
 The only piece that spends a model, and it is **rung 2, not rung 3**: the model is handed a
-written method (`method/GENERATE.md`) and a schema it must fill, so the same use case produces
+written method (`tooling/method/GENERATE.md`) and a schema it must fill, so the same use case produces
 the same shape twice.
 
 ```bash
-./generate.sh --use-case process.txt --name warranty --by "Team 4"
-./generate.sh --recorded examples/refunds.design --name demo   # zero tokens, offline
+tooling/generate.sh --use-case process.txt --name warranty --by "Team 4"
+tooling/generate.sh --recorded examples/refunds.design --name demo   # zero tokens, offline
 make test                                                      # the repair path, with a stub model
 ```
 
@@ -150,9 +165,9 @@ by a model, so it cannot flatter the design it describes.
 Nothing is built from a design nobody put their name to.
 
 ```bash
-./accept.sh examples/refunds.design --by "M. Okafor, Refunds Team Lead"
-./accept.sh --status examples/refunds.design
-./accept.sh --verify        # recompute the register's hash chain
+tooling/accept.sh examples/refunds.design --by "M. Okafor, Refunds Team Lead"
+tooling/accept.sh --status examples/refunds.design
+tooling/accept.sh --verify        # recompute the register's hash chain
 ```
 
 Four properties, and each one is a control rather than a convention:
@@ -167,7 +182,7 @@ Four properties, and each one is a control rather than a convention:
 Revocation is a row, never a deletion:
 
 ```bash
-./accept.sh --revoke examples/renewals.design --by "J. Lindqvist, Commercial Counsel" \
+tooling/accept.sh --revoke examples/renewals.design --by "J. Lindqvist, Commercial Counsel" \
   --reason "Counterparty changed the indemnity clause after review"
 ```
 
@@ -214,10 +229,10 @@ intake  ->  designed  ->  discussing  ->  accepted  ->  built
 ## The pipeline, end to end
 
 ```bash
-./generate.sh --use-case process.txt --name warranty    # free text  -> design + brief
+tooling/generate.sh --use-case process.txt --name warranty    # free text  -> design + brief
 #   read jobs/warranty/BRIEF.md, argue with it, edit the design
-./accept.sh jobs/warranty/proposed.design --by "R. Nakamura, Warranty Operations Lead"
-./scaffold.sh jobs/warranty/proposed.design loops/warranty
+tooling/accept.sh jobs/warranty/proposed.design --by "R. Nakamura, Warranty Operations Lead"
+tooling/scaffold.sh jobs/warranty/proposed.design loops/warranty
 cd loops/warranty && make tick
 ```
 

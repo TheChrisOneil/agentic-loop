@@ -2,10 +2,11 @@
 # When the repair budget runs out, does it refuse — and does the refusal name the findings
 # and the next human action, rather than shipping an unvalidated design?
 set -uo pipefail
-W="$(cd "$(dirname "$0")/.." && pwd)"
+T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
+W="$(cd "$T/.." && pwd)"                # the workshop
 rm -rf "$W/jobs/_budgettest"
-OUT=$(PATH="$W/tests/fake-bin-always-bad:$PATH" GENERATE_MODEL=stub-model \
-  "$W/generate.sh" --use-case "$W/tests/fixtures/use-case.txt" --name _budgettest --by "Test" 2>&1)
+OUT=$(PATH="$T/tests/fake-bin-always-bad:$PATH" GENERATE_MODEL=stub-model \
+  "$T/generate.sh" --use-case "$T/tests/fixtures/use-case.txt" --name _budgettest --by "Test" 2>&1)
 ST=$?
 echo "$OUT" | head -12
 echo

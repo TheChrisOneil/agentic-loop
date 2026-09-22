@@ -11,7 +11,8 @@
 #
 # It runs the validator first. A design that fails a rule is not shown to anybody.
 set -uo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
+ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
 VIEW=seq; MD=0; FORCE=0
 while [ $# -gt 1 ]; do
   case "$1" in

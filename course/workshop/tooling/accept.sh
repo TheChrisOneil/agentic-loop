@@ -14,9 +14,10 @@
 # The register is append-only and chained: every row carries a hash of the row before it, so
 # an edited row breaks the chain and --verify says which one.
 set -uo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
+ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
 # The register location is configuration, not a control — tests point it at a scratch file.
-REG="${ACCEPT_REGISTER:-$HERE/memory/acceptances.tsv}"
+REG="${ACCEPT_REGISTER:-$ROOT/memory/acceptances.tsv}"
 PHRASE_REQUIRED="i accept"
 GENESIS="0000000000000000000000000000000000000000000000000000000000000000"
 
@@ -26,7 +27,7 @@ init() { [ -s "$REG" ] || printf 'seq\ttimestamp\taction\tdesign\tdesign_sha\tby
 sha_of() { shasum -a 256 "$1" | awk '{print $1}'; }
 # Record the design path relative to the workshop, never absolute: an acceptance must survive
 # the tree being moved. Matching stays per project, which is the point of keying on the path.
-relpath() { case "$1" in "$HERE/"*) printf '%s' "${1#"$HERE/"}" ;; *) printf '%s' "$1" ;; esac; }
+relpath() { case "$1" in "$ROOT/"*) printf '%s' "${1#"$ROOT/"}" ;; *) printf '%s' "$1" ;; esac; }
 last_chain() { awk -F'\t' 'NR>1{c=$8} END{print (c==""?"'"$GENESIS"'":c)}' "$REG"; }
 next_seq()  { awk -F'\t' 'NR>1{n=$1} END{print n+1}' "$REG"; }
 

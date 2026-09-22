@@ -10,7 +10,8 @@
 #
 # By convention the output goes in loops/<name>/ — the tooling and what it builds stay apart.
 set -euo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
+ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
 FORCE=0
 [ "${1:-}" = "--force" ] && { FORCE=1; shift; }
 DESIGN="${1:?usage: scaffold.sh [--force] <design file> <output directory>}"
@@ -428,7 +429,7 @@ printf 'memory/\noutbox/\nproof/\njudgments/\n' > "$OUT/.gitignore"
   echo '```'
   echo
   echo "The acceptance is of the design's **content**, not its filename. The register that"
-  echo "holds it is append-only and chained — \`../accept.sh --verify\` recomputes it."
+  echo "holds it is append-only and chained — \`../../tooling/accept.sh --verify\` recomputes it."
   echo
   echo "Change \`design/loop.design\` and this acceptance stops covering it. Scaffolding again"
   echo "will refuse until somebody accepts the new version, by name."

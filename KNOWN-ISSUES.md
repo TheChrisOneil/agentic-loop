@@ -24,7 +24,7 @@ On a machine without `column`, `make ledger` prints *"no ledger yet"* while the 
 That is rule 3 of the five — *a check that did not run is not a check that passed* — broken in
 our own code.
 
-**Where:** `course/workshop/scaffold.sh` (the generator of these lines), and the same two lines
+**Where:** `course/workshop/tooling/scaffold.sh` (the generator of these lines), and the same two lines
 in `loops/refunds/Makefile`, `loops/renewals/Makefile`, `loops/support-triage/Makefile`,
 `loops/warranty/Makefile`.
 
@@ -40,7 +40,7 @@ Three display-only call sites abort rather than degrade:
 ```
 course/demo/Makefile:15              make units
 course/demo/Makefile:16              make findings
-course/workshop/tests/repair-path.sh:11
+course/workshop/tooling/tests/repair-path.sh
 ```
 
 `column` is util-linux. Present on macOS and on WSL, absent in Git Bash.
@@ -58,10 +58,10 @@ Ten call sites use `shasum -a 256`. It is a perl script — always on macOS, usu
 
 | File | What it hashes |
 |---|---|
-| `course/workshop/accept.sh:26,37,84` | The design content, the register's chain link, the chain re-verification |
+| `course/workshop/tooling/accept.sh` | The design content, the register's chain link, the chain re-verification |
 | `course/demo/steps/8-prove.sh:36` | Writes the proof checksum |
 | `course/demo/steps/9-deliver.sh:11` | Re-checks it before delivery |
-| `course/workshop/scaffold.sh:275` | The line generated into every scaffolded prove step |
+| `course/workshop/tooling/scaffold.sh` | The line generated into every scaffolded prove step |
 | `loops/*/` prove steps | The same line, already written out |
 
 **Impact:** on a host without perl, proof writing and the acceptance register both fail.
@@ -97,7 +97,7 @@ account. The tooling is the instructor's.
 
 ---
 
-## 6. `start.sh` cannot be driven by a single piped stream
+## 6. `tooling/start.sh` cannot be driven by a single piped stream
 
 The intake and discussion steps read with `cat`, which consumes stdin to end-of-file. A script
 piping `slug, owner, use-case, choice` in one stream loses everything after the use case.
@@ -112,7 +112,7 @@ accept `--use-case <file>` in `start.sh` the way `generate.sh` already does.
 
 ## 7. The job ledger names the configured model, not the binary that ran
 
-`generate.sh` logs `GENERATE_MODEL`. When a stub `claude` is first on `PATH`, the ledger still
+`tooling/generate.sh` logs `GENERATE_MODEL`. When a stub `claude` is first on `PATH`, the ledger still
 reads `model claude-opus-5` while nothing of the sort was called.
 
 **Impact:** confusing in tests. In production the two always agree.
@@ -125,7 +125,7 @@ reads `model claude-opus-5` while nothing of the sort was called.
 
 `course/workshop/memory/acceptances.tsv` rows 8, 9 and 10 record absolute paths under
 `/Users/thechrisoneil/software/course/...` for jobs that were deleted. They came from testing,
-before `accept.sh` began storing paths relative to the workshop root.
+before `tooling/accept.sh` began storing paths relative to the workshop root.
 
 **They are left in place on purpose.** The register is append-only and chained; rewriting
 history to tidy it would break the chain and would be the wrong lesson. `accept.sh --verify`

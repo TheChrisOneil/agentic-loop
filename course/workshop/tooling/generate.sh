@@ -11,7 +11,8 @@
 #
 # Output lands in jobs/<slug>/ : the use case as given, the proposed design, and a brief.
 set -uo pipefail
-HERE="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
+ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
 MODEL="${GENERATE_MODEL:-claude-opus-5}"
 MAXCHARS="${MAXCHARS:-8000}"
 REPAIRS="${REPAIRS:-1}"          # how many times the validator's findings are fed back
@@ -29,7 +30,7 @@ done
 [ -n "$SLUG" ] || { echo "usage: generate.sh --name <slug> [--use-case <file>] [--recorded <design>]" >&2; exit 64; }
 case "$SLUG" in *[!a-zA-Z0-9_-]*) echo "--name must be a slug: letters, digits, dash, underscore" >&2; exit 64 ;; esac
 
-JOB="$HERE/jobs/$SLUG"
+JOB="$ROOT/jobs/$SLUG"
 mkdir -p "$JOB"
 LEDGER="$JOB/job.tsv"
 [ -f "$LEDGER" ] || printf 'timestamp\tstage\tstatus\tdetail\n' > "$LEDGER"

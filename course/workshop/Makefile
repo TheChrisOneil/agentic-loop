@@ -17,26 +17,26 @@ help:
 	@echo "make broken               a design that fails, for the session"
 	@echo "make rules                the rule list, in plain language"
 	@echo "make format               the design format specification"
-check:   ; @./validate.sh $(DESIGN)
-example: ; @./validate.sh examples/invoices.design
-broken:  ; @./validate.sh examples/broken.design || true
-rules:   ; @./validate.sh --rules
+check:   ; @tooling/validate.sh $(DESIGN)
+example: ; @tooling/validate.sh examples/invoices.design
+broken:  ; @tooling/validate.sh examples/broken.design || true
+rules:   ; @tooling/validate.sh --rules
 format:  ; @cat schema/DESIGN-FORMAT.md
-start:   ; @./start.sh
-jobs:    ; @./start.sh --list
-generate:; @./generate.sh --name $(NAME) --use-case $(UC)
-test:    ; @./tests/flow.sh && echo && ./tests/repair-path.sh && echo && ./tests/repair-budget.sh
-accept:  ; @./accept.sh $(DESIGN) --by "$(BY)"
-status:  ; @./accept.sh --status $(DESIGN)
-register:; @./accept.sh --list
-verify:  ; @./accept.sh --verify
-scaffold:; @mkdir -p loops && ./scaffold.sh $(DESIGN) loops/$(NAME)
-diagram: ; @./render.sh $(DESIGN)
-flow:    ; @./render.sh --flow $(DESIGN)
+start:   ; @tooling/start.sh
+jobs:    ; @tooling/start.sh --list
+generate:; @tooling/generate.sh --name $(NAME) --use-case $(UC)
+test:    ; @tooling/tests/flow.sh && echo && tooling/tests/repair-path.sh && echo && tooling/tests/repair-budget.sh
+accept:  ; @tooling/accept.sh $(DESIGN) --by "$(BY)"
+status:  ; @tooling/accept.sh --status $(DESIGN)
+register:; @tooling/accept.sh --list
+verify:  ; @tooling/accept.sh --verify
+scaffold:; @mkdir -p loops && tooling/scaffold.sh $(DESIGN) loops/$(NAME)
+diagram: ; @tooling/render.sh $(DESIGN)
+flow:    ; @tooling/render.sh --flow $(DESIGN)
 svg:
 	@command -v mmdc >/dev/null || { echo "mmdc not installed — the .mmd output is still valid Mermaid."; exit 1; }
 	@mkdir -p build
-	@./render.sh $(DESIGN) > build/sequence.mmd && mmdc -i build/sequence.mmd -o build/sequence.svg >/dev/null
-	@./render.sh --flow $(DESIGN) > build/flow.mmd && mmdc -i build/flow.mmd -o build/flow.svg >/dev/null
+	@tooling/render.sh $(DESIGN) > build/sequence.mmd && mmdc -i build/sequence.mmd -o build/sequence.svg >/dev/null
+	@tooling/render.sh --flow $(DESIGN) > build/flow.mmd && mmdc -i build/flow.mmd -o build/flow.svg >/dev/null
 	@echo "build/sequence.svg  build/flow.svg"
 clean:   ; @rm -rf build && echo cleaned
