@@ -56,6 +56,11 @@ a manager who cannot read the specification cannot assess the work."*
 
 ## Before you walk in
 
+**The day before:** work through `REHEARSAL.md` end to end. Twenty minutes, and every expected
+line in it came from a real run, so a difference means something is actually wrong.
+
+**On the day:**
+
 ```bash
 cd demo && make clean && make tick && make report
 ```
