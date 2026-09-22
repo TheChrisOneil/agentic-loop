@@ -41,6 +41,7 @@ FILE="${1:?usage: validate.sh [--tsv] <design file> | --rules}"
 # V19  at least three KPIs, including one cost and one quality
 # V20  an unmeasured baseline is allowed, and warned about
 # V21  step scope is batch or unit, and every batch step comes first
+# V22  every gate attaches to a step that exists
 # END RULES
 
 awk -v mode="$MODE" -f "$(dirname "$0")/lib/parse.awk" -f "$(dirname "$0")/lib/validate.awk" "$FILE"

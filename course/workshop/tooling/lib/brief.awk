@@ -65,6 +65,6 @@ END {
   print "   one worth arguing about — everything downstream inherits it."
   print "2. **Change it.** Edit the design file and re-run the validator. That is cheap now and"
   print "   expensive later."
-  print "3. **Accept it**, by name, when it is right: `tooling/accept.sh <design> --by \"Name, Role\"`"
-  print "4. **Build it:** `tooling/scaffold.sh <design> loops/<name>` — it runs the same day."
+  print "3. **Accept it**, by name, when it is right: `make accept DESIGN=<design> BY=\"Name, Role\"`"
+  print "4. **Build it:** `make scaffold DESIGN=<design> NAME=<name>` — it runs the same day."
 }

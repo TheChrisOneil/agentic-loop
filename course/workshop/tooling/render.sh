@@ -10,6 +10,7 @@
 #   ./render.sh --force <design>      render a design the validator refused
 #
 # It runs the validator first. A design that fails a rule is not shown to anybody.
+# Students reach this through:  make diagram DESIGN=<design>  /  make flow DESIGN=<design>
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
 ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
@@ -27,7 +28,7 @@ if ! "$HERE/validate.sh" "$FILE" >/dev/null 2>&1; then
   if [ "$FORCE" -eq 0 ]; then
     echo "REFUSED: this design does not pass the validator, so it is not rendered." >&2
     echo "         A picture of a design nobody checked is worse than no picture." >&2
-    echo "         Run:  ./validate.sh $FILE      (or pass --force to see it anyway)" >&2
+    echo "         Run:  make check DESIGN=$FILE   (or pass --force to see it anyway)" >&2
     exit 1
   fi
   echo "%% WARNING: rendered with --force. This design fails the validator." 

@@ -14,6 +14,7 @@
 #
 # The register is append-only and chained: every row carries a hash of the row before it, so
 # an edited row breaks the chain and --verify says which one.
+# Students reach this through:  make accept DESIGN=<design> BY="Name, Role"
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
 ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
@@ -133,7 +134,7 @@ esac
 
 if ! "$HERE/validate.sh" "$F" >/dev/null 2>&1; then
   echo "REFUSED: this design does not pass the validator, so it cannot be accepted." >&2
-  echo "         Run:  ./validate.sh $F" >&2
+  echo "         Run:  make check DESIGN=$F" >&2
   exit 1
 fi
 

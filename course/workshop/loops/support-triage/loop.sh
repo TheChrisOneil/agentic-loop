@@ -5,6 +5,7 @@
 #
 # Batch steps run once. Unit steps run once per unit. A gate that refuses stops that unit and
 # nothing else. Code prepares, judgment decides, code carries out and checks.
+# Students reach this through:  make scaffold DESIGN=<design> NAME=<folder>
 set -uo pipefail
 cd "$(dirname "$0")"
 source ./config.sh

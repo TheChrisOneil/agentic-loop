@@ -105,14 +105,14 @@ esac
 
 # ---------------------------------------------------------------- 2. the workshop
 echo; echo "THE WORKSHOP — the tool that builds a loop from a described process"
-expect "the validator passes a good design" "21 passed, 0 failed" \
+expect "the validator passes a good design" "22 passed, 0 failed" \
   "cd workshop && make example" -- make -C workshop example
-expect "the validator fails a bad one" "10 passed, 14 failed" \
+expect "the validator fails a bad one" "11 passed, 14 failed" \
   "cd workshop && make broken" -- make -C workshop broken
 
 RULES=$(make -C workshop rules 2>/dev/null | grep -c '^V')
-[ "$RULES" -eq 21 ] && pass "all 21 rules are listed" \
-  || fail "the rule list shows $RULES rules, expected 21" "cd workshop && make rules"
+[ "$RULES" -eq 22 ] && pass "all 22 rules are listed" \
+  || fail "the rule list shows $RULES rules, expected 22" "cd workshop && make rules"
 
 GATES=$(make -C workshop diagram DESIGN=examples/invoices.design 2>/dev/null | grep -c '^    alt ')
 [ "$GATES" -eq 3 ] && pass "the diagram carries all 3 gates" \

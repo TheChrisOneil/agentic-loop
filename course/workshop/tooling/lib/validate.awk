@@ -128,6 +128,14 @@ END {
   else { if (serr!="") rec("ERROR","V21","scope must be batch or unit at step(s)" serr,"leave the field off for unit, or write batch")
          if (order_err!="") rec("ERROR","V21","batch step(s)" order_err " come after a unit step","everything that runs once happens before the units exist") }
 
+  # V22 every gate attaches to a real step
+  ghost=""
+  for (i=1;i<=g;i++) { found=0
+    for (j=1;j<=s;j++) if (SID[j]==GAFT[i]) { found=1; break }
+    if (!found) ghost=ghost " " GAFT[i] }
+  if (g>0 && ghost=="") ok("V22","every gate attaches to a real step")
+  else if (ghost!="") rec("ERROR","V22","gate(s) name step id(s)" ghost ", which do not exist","a gate nobody can place is a control that silently disappears from the diagram and the build")
+
   # V17 proof writer is mechanical
   ws=V["evidence.writer_step"]; wt=""
   for (i=1;i<=s;i++) if (SID[i]==ws) wt=tolower(STYPE[i])

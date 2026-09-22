@@ -10,6 +10,7 @@
 #   ./generate.sh --recorded <design> --name <slug> zero tokens: replay a recorded design
 #
 # Output lands in jobs/<slug>/ : the use case as given, the proposed design, and a brief.
+# Students reach this through:  make generate NAME=<slug> UC=<file>
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
 ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
@@ -183,5 +184,5 @@ echo "  memory/usage.tsv             what this cost, in tokens and dollars"
 echo "  jobs/$SLUG/job.tsv           what happened, in order"
 echo
 echo "  Discuss it. Then, when it is right:"
-echo "    tooling/accept.sh jobs/$SLUG/proposed.design --by \"Name, Role\""
-echo "    tooling/scaffold.sh jobs/$SLUG/proposed.design loops/$SLUG"
+echo "    make accept DESIGN=jobs/$SLUG/proposed.design BY=\"Name, Role\""
+echo "    make scaffold DESIGN=jobs/$SLUG/proposed.design NAME=$SLUG"

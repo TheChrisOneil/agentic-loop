@@ -152,7 +152,7 @@ Measure the first or you will quote the second wrong.
 ### B4 · Read what the validator said
 
 The wrapper already ran it — and iterated once if the first design failed. Run it yourself to
-see the twenty-one rules:
+see the twenty-two rules:
 
 ```bash
 make check DESIGN=jobs/team-N/proposed.design
@@ -246,7 +246,7 @@ writing a line of logic, which is the cheapest order to do it in.
 ## What to hand in
 
 1. `jobs/team-N/use-case.txt` — the process, in your words
-2. `jobs/team-N/proposed.design` — passing 21/21
+2. `jobs/team-N/proposed.design` — passing 22/22
 3. `jobs/team-N/BRIEF.md` and `diagrams/` — from step B6
 4. One sentence: **which step is the judgment, and what checks it**
 

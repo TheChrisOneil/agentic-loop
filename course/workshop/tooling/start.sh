@@ -8,6 +8,7 @@
 #
 # States: intake -> designed -> discussing -> accepted -> built
 # Every transition is appended to jobs/<slug>/job.tsv. A job resumes exactly where it stopped.
+# Students reach this through:  make start
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"          # the tooling
 ROOT="$(cd "$HERE/.." && pwd)"                 # the workshop: jobs, loops, memory, examples
@@ -40,7 +41,7 @@ begin_new() {
     -*) echo "  A name cannot start with a dash — that looks like a flag. Nothing was started."; exit 64 ;;
     ""|*[!a-zA-Z0-9_-]*) echo "  That is not a usable name. Nothing was started."; exit 64 ;;
   esac
-  [ -d "$JOBS/$SLUG" ] && { echo "  A job called $SLUG already exists. Resume it with --job $SLUG."; exit 1; }
+  [ -d "$JOBS/$SLUG" ] && { echo "  A job called $SLUG already exists. Resume it with  make start"; exit 1; }
   read -r -p "  Your name and role, for the record: " BY
   [ -n "$BY" ] || { echo "  A job needs an owner. Nothing was started."; exit 64; }
 
@@ -88,7 +89,7 @@ run_generate() { # slug notes-file
     sed 's/^/    /' "$JOBS/$slug/.scratch/generate.err" | head -20
     echo
     echo "  The job is kept. Next human action: describe the process again with the missing"
-    echo "  detail, or repair jobs/$slug/proposed.design by hand and run ./start.sh --job $slug."
+    echo "  detail, or repair jobs/$slug/proposed.design by hand and run  make start"
     set_state "$slug" intake "generation refused"
     exit 1
   fi
@@ -134,8 +135,8 @@ TXT
     d) discuss "$slug" ;;
     a) accept_it "$slug" ;;
     s) set_state "$slug" designed "stopped by the owner"
-       echo; echo "  Stopped. Resume with:  ./start.sh --job $slug" ;;
-    *) echo; echo "  Not a choice. Nothing changed. Resume with:  ./start.sh --job $slug" ;;
+       echo; echo "  Stopped. Resume with:  make start" ;;
+    *) echo; echo "  Not a choice. Nothing changed. Resume with:  make start" ;;
   esac
 }
 
@@ -147,7 +148,7 @@ discuss() { # slug
     echo
     echo "  $REVISION_CAP revisions is the budget, and it is spent."
     echo "  Next human action: accept the design as it stands, or edit"
-    echo "  jobs/$slug/proposed.design by hand and re-run ./validate.sh on it."
+    echo "  jobs/$slug/proposed.design by hand and run  make check DESIGN=jobs/$slug/proposed.design"
     decide "$slug"; return
   fi
   set_state "$slug" discussing "revision $((rev+1))"

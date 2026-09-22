@@ -98,6 +98,7 @@ A design is rejected unless all of these hold:
 19. At least three KPIs, including one `cost` and one `quality`
 20. Baselines are given, or written `unmeasured`
 21. Step `scope` is `batch` or `unit`, and every batch step comes before every unit step
+22. Every gate's `after` names a step id that exists
 
 ## 5. The format
 

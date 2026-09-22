@@ -5,6 +5,7 @@
 #   ./brief.sh <design file>        writes BRIEF.md and diagrams/ beside the design
 #
 # generate.sh calls this, and so does anyone who wrote a design by hand.
+# Students reach this through:  make brief DESIGN=<design>
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 DESIGN="${1:?usage: brief.sh <design file>}"
@@ -12,7 +13,7 @@ DESIGN="${1:?usage: brief.sh <design file>}"
 
 if ! "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
   echo "REFUSED: this design does not pass the validator, so no brief is written." >&2
-  echo "         Run:  tooling/validate.sh $DESIGN" >&2
+  echo "         Run:  make check DESIGN=$DESIGN" >&2
   exit 1
 fi
 

@@ -20,7 +20,7 @@ OUT="${2:?usage: scaffold.sh [--force] <design file> <output directory>}"
 [ -f "$DESIGN" ] || { echo "no such design file: $DESIGN" >&2; exit 2; }
 if ! "$HERE/validate.sh" "$DESIGN" >/dev/null 2>&1; then
   echo "REFUSED: this design does not pass the validator, so nothing is built from it." >&2
-  echo "         Run:  ./validate.sh $DESIGN" >&2
+  echo "         Run:  make check DESIGN=$DESIGN" >&2
   exit 1
 fi
 # THE ACCEPTANCE GATE. Nothing is built from a design nobody put their name to, and an
@@ -33,7 +33,7 @@ if ! "$HERE/accept.sh" --status "$DESIGN" >/dev/null 2>&1; then
   echo "         Next human action: the person accountable for this process reads the design" >&2
   echo "         and accepts it by name:" >&2
   echo >&2
-  echo "           ./accept.sh $DESIGN --by \"Name, Role\"" >&2
+  echo "           make accept DESIGN=$DESIGN BY=\"Name, Role\"" >&2
   exit 1
 fi
 
@@ -350,6 +350,7 @@ cat > "$OUT/loop.sh" <<EOF
 #
 # Batch steps run once. Unit steps run once per unit. A gate that refuses stops that unit and
 # nothing else. Code prepares, judgment decides, code carries out and checks.
+# Students reach this through:  make scaffold DESIGN=<design> NAME=<folder>
 set -uo pipefail
 cd "\$(dirname "\$0")"
 source ./config.sh
@@ -456,7 +457,7 @@ printf 'memory/\noutbox/\nproof/\njudgments/\n' > "$OUT/.gitignore"
   echo '```'
   echo
   echo "The acceptance is of the design's **content**, not its filename. The register that"
-  echo "holds it is append-only and chained — \`../../tooling/accept.sh --verify\` recomputes it."
+  echo "holds it is append-only and chained — \`make -C ../.. verify\` recomputes it."
   echo
   echo "Change \`design/loop.design\` and this acceptance stops covering it. Scaffolding again"
   echo "will refuse until somebody accepts the new version, by name."

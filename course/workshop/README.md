@@ -6,7 +6,7 @@ deterministic gate over it.
 ```bash
 make example              # the design of the working loop in ../demo — 20 passed, 0 failed
 make broken               # a design that looks reasonable and fails 14 checks
-make rules                # the 21 rules, in plain language
+make rules                # the 22 rules, in plain language
 make check   DESIGN=my.design
 make diagram DESIGN=my.design    # a Mermaid sequence diagram
 make flow    DESIGN=my.design    # a Mermaid flowchart, colored by step type
@@ -40,7 +40,7 @@ before a design is ever shown to a student, it costs nothing, and it cannot be a
 
 The workshop tool is governed by the rules the workshop teaches. That is the point.
 
-## The twenty-one rules
+## The twenty-two rules
 
 Run `make rules`. They fall into four groups:
 
