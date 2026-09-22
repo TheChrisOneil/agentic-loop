@@ -156,6 +156,12 @@ notice.
 The named person on the proposal. That is why the last step of every loop in this course
 assigns one. This is discussion question one — do not answer it in full here, let the room do it.
 
+**"What does it look like when you actually fill a step in?"**
+`workshop/loops/demo/` is the scaffolding for the invoice design; `demo/` is the finished
+version of the same design. Same nine files, same names. Project the diff:
+`diff workshop/loops/demo/steps/2-match.sh demo/steps/2-match.sh`. The skeleton is 128 lines,
+the working loop 283. `workshop/loops/demo/README-COMPARE.md` has the per-step table.
+
 **"How much does this cost to build?"**
 The demo in `demo/` is about four hundred lines of shell and no dependencies. The expensive
 part was never the code. It was deciding what a unit of work is.

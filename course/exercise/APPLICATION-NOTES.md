@@ -293,6 +293,19 @@ make ledger      # every transition, timestamped
 The loop runs; nothing decides anything yet. That is deliberate — you settled the shape before
 writing a line of logic, which is the cheapest order to do it in.
 
+**What filling it in looks like.** `loops/demo/` is this same scaffolding for the invoice
+design, and `course/demo/` is the finished version of it, written by hand. Same nine files,
+same names. Read `loops/demo/README-COMPARE.md` for the measured difference, or look at one
+step:
+
+```bash
+diff loops/demo/steps/2-match.sh demo/steps/2-match.sh    # from course/
+```
+
+The skeleton is 128 lines and the working loop is 283. The scaffold knows the step is
+mechanical, what it is for, and that it must write to the ledger. It does not know how to
+reconcile an invoice against a purchase order. That gap is your job.
+
 ---
 
 ## What to hand in
