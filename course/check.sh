@@ -122,6 +122,17 @@ SUITE=$(make -C workshop test 2>&1 | grep -cE '^PASS')
 [ "$SUITE" -eq 11 ] && pass "the whole pipeline passes: 11 assertions" \
   || fail "the suite passed $SUITE assertions, expected 11" "cd workshop && make test, and read which one failed"
 
+# A job with .mmd but no .svg is how "the diagrams are not showing" happens quietly.
+MISSING=""
+for d in workshop/jobs/*/diagrams; do
+  [ -d "$d" ] || continue
+  [ -s "$d/sequence.svg" ] && [ -s "$d/flow.svg" ] || MISSING="$MISSING $(basename "$(dirname "$d")")"
+done
+if [ -z "$MISSING" ]; then pass "every job's diagrams rendered to SVG"
+else fail "job(s)$MISSING have .mmd but no .svg" \
+       "cd workshop && make brief DESIGN=jobs/<name>/proposed.design — it will say why" \
+       "an svg beside every mmd" "missing for:$MISSING"; fi
+
 expect "the acceptance register verifies" "chain intact" \
   "cd workshop && make verify — a broken chain means a row was edited" -- make -C workshop verify
 

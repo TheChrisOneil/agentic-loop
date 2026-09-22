@@ -21,11 +21,23 @@ DIR="$(cd "$(dirname "$DESIGN")" && pwd)"
 DIA="$DIR/diagrams"; mkdir -p "$DIA"
 "$HERE/render.sh"        "$DESIGN" > "$DIA/sequence.mmd"
 "$HERE/render.sh" --flow "$DESIGN" > "$DIA/flow.mmd"
-SVG=""
-if command -v mmdc >/dev/null; then
-  mmdc -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >/dev/null 2>&1 || true
-  mmdc -i "$DIA/flow.mmd"     -o "$DIA/flow.svg"     >/dev/null 2>&1 || true
-  [ -s "$DIA/sequence.svg" ] && SVG=yes
+# Rendering to SVG is the part that can fail, and failing quietly is how somebody ends up with
+# two .mmd files and no idea why. Say what happened, every time.
+SVG=""; SVG_NOTE=""
+if ! command -v mmdc >/dev/null; then
+  SVG_NOTE="mmdc is not installed, so no SVG was drawn."
+  echo "  note: mmdc is not installed — the .mmd files are still valid Mermaid." >&2
+else
+  ERR="$DIA/.mmdc.log"
+  if mmdc -i "$DIA/sequence.mmd" -o "$DIA/sequence.svg" >"$ERR" 2>&1 \
+     && mmdc -i "$DIA/flow.mmd" -o "$DIA/flow.svg" >>"$ERR" 2>&1 \
+     && [ -s "$DIA/sequence.svg" ] && [ -s "$DIA/flow.svg" ]; then
+    SVG=yes; rm -f "$ERR"
+  else
+    SVG_NOTE="mmdc is installed but could not draw these diagrams. Its output is in diagrams/.mmdc.log."
+    echo "  note: mmdc failed — see $DIA/.mmdc.log. The .mmd files are still valid Mermaid." >&2
+    tail -3 "$ERR" 2>/dev/null | sed 's/^/        /' >&2
+  fi
 fi
 
 {
@@ -36,8 +48,14 @@ fi
   if [ -n "$SVG" ]; then
     echo "Pictures, for reading: [\`diagrams/sequence.svg\`](diagrams/sequence.svg) and"
     echo "[\`diagrams/flow.svg\`](diagrams/flow.svg). Open either one — no tooling needed."
+  else
+    echo "**No pictures were drawn.** $SVG_NOTE"
     echo
+    echo "To see either diagram, paste the block below into <https://mermaid.live>, or install"
+    echo "the renderer with \`npm install -g @mermaid-js/mermaid-cli\` and run"
+    echo "\`make brief DESIGN=<this design>\` again."
   fi
+  echo
   echo "### Step by step, with every gate"
   echo
   echo '```mermaid'; cat "$DIA/sequence.mmd"; echo '```'

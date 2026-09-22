@@ -183,7 +183,23 @@ then quote the next figure as typical.
 
 ---
 
-## 12. The deck lives outside this repo
+## 12. Drawing the diagrams needs mmdc, and says so when it is missing
+
+`make brief` writes `diagrams/sequence.mmd` and `flow.mmd` always. Turning them into `.svg`
+needs `mmdc` (`npm install -g @mermaid-js/mermaid-cli`).
+
+Without it you get the two `.mmd` files, a note on stderr, and a line in the brief saying no
+pictures were drawn and how to see them anyway. `check.sh` fails when a job has `.mmd` but no
+`.svg`, so it cannot pass unnoticed.
+
+**Impact:** a reader who will not run anything needs the pictures. Install `mmdc` before the
+session, or paste a `.mmd` into <https://mermaid.live>.
+
+**Fix:** none needed — the dependency is real and the absence is now reported.
+
+---
+
+## 13. The deck lives outside this repo
 
 `course/deck.md` is the source of record for the content. The presented deck is a private
 Artifact, and the two are kept in step by hand.
