@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "gate-coverage" refused "gate 7"
-  echo "  7 gate-coverage: REFUSED — Return the clause list to the contracts owner and have a person reconcile it before review"
+  step_say "7" "gate-coverage" "gate" "REFUSED — Return the clause list to the contracts owner and have a person reconcile it before review"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "gate-coverage" proceed "gate 7, placeholder condition"
-echo "  7 gate-coverage: proceed"
+step_say "7" "gate-coverage" "gate" "proceed"

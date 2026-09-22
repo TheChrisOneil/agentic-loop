@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "consistency-gate" refused "gate 8"
-  echo "  8 consistency-gate: REFUSED — Senior Product Technician opens the claim, inspects the unit and photographs directly, and records a written adjudication in the claim record"
+  step_say "8" "consistency-gate" "gate" "REFUSED — Senior Product Technician opens the claim, inspects the unit and photographs directly, and records a written adjudication in the claim record"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "consistency-gate" proceed "gate 8, placeholder condition"
-echo "  8 consistency-gate: proceed"
+step_say "8" "consistency-gate" "gate" "proceed"

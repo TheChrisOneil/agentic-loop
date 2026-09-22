@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "gate-intake" refused "gate 4"
-  echo "  4 gate-intake: REFUSED — Send to the fraud desk with the account history attached before any amount is released"
+  step_say "4" "gate-intake" "gate" "REFUSED — Send to the fraud desk with the account history attached before any amount is released"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "gate-intake" proceed "gate 4, placeholder condition"
-echo "  4 gate-intake: proceed"
+step_say "4" "gate-intake" "gate" "proceed"

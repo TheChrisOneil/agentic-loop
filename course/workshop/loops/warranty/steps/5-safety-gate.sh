@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "safety-gate" refused "gate 5"
-  echo "  5 safety-gate: REFUSED — Warranty Operations Coordinator returns the claim to the submitting dealer with a named missing-field request and a 5-business-day response window"
+  step_say "5" "safety-gate" "gate" "REFUSED — Warranty Operations Coordinator returns the claim to the submitting dealer with a named missing-field request and a 5-business-day response window"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "safety-gate" proceed "gate 5, placeholder condition"
-echo "  5 safety-gate: proceed"
+step_say "5" "safety-gate" "gate" "proceed"

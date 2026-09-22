@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "gate-scope" refused "gate 4"
-  echo "  4 gate-scope: REFUSED — Route to counsel before any clause is assessed, with the full diff attached"
+  step_say "4" "gate-scope" "gate" "REFUSED — Route to counsel before any clause is assessed, with the full diff attached"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "gate-scope" proceed "gate 4, placeholder condition"
-echo "  4 gate-scope: proceed"
+step_say "4" "gate-scope" "gate" "proceed"

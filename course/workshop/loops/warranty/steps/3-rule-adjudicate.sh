@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "rule-adjudicate" "$RESULT" "step 3, mechanical, not yet implemented"
-echo "  3 rule-adjudicate: $RESULT"
+step_say "3" "rule-adjudicate" "mechanical" "$RESULT"

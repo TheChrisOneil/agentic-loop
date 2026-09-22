@@ -149,7 +149,7 @@ Four controls, each tested:
 | **The validator checks the generator** | A generated design is validated before anyone sees it. This is the answer to "if your decomposition is a model, what checks it?" |
 | **One bounded repair** | A rejected design goes back with the findings, once. `REPAIRS` sets the budget |
 | **It refuses rather than ships** | Budget exhausted → the findings are printed, no brief is written, and the draft is left for a human |
-| **Every call is costed** | `memory/usage.tsv` records input, output, **thinking** and **cache** tokens plus the dollar figure the CLI reported. `make cost` totals it |
+| **Every call is costed, and split** | `memory/usage.tsv` records input, output, **thinking** and **cache** tokens plus the CLI's dollar figure, tagged **`nre`** or **`run`** |
 
 **Assumptions come first.** The method requires every gap the model filled to be declared, and
 the brief prints them above everything else. A design whose assumptions are buried reads as
@@ -160,6 +160,31 @@ authoritative and stops the discussion it should start.
 
 **The brief is rendered by rule**, from the design, like the diagram. Nothing in it is written
 by a model, so it cannot flatter the design it describes.
+
+### NRE is not cost-to-serve
+
+`make cost` totals the two separately, and the distinction is the one a manager needs:
+
+```
+NRE   1 call(s)  $0.2540   designing the loop, paid once
+RUN   0 call(s)  $0.0000   running it, per unit of work
+cost per unit of work: not yet measured — no run-time calls recorded
+```
+
+**NRE** is non-recurring engineering: the model call that turns a described process into a
+design. It is paid once and amortized over every unit the loop ever handles. A design costing
+a quarter of a dollar is not a running cost, and reporting it as one makes a pilot look
+expensive for a reason that disappears after day one.
+
+**RUN** is cost-to-serve — one unit of work going through the loop. This is the number that
+belongs in *cost per completed decision*, and it is the one the deck argues you must know.
+
+Totalling them together misleads in both directions: a cheap design makes running the loop
+look free, and an expensive one makes it look fatal. The ledger refuses to blur them.
+
+The RUN line reads zero today because a scaffolded loop's judgment step is still a placeholder
+that records nothing — see KNOWN-ISSUES 7. The column exists from the first run, which is the
+point the record slide makes.
 
 ## The acceptance gate
 

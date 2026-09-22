@@ -33,4 +33,4 @@ UNIT="$1"
 
 shasum -a 256 "$PROOF/$UNIT.txt" | awk '{print $1}' > "$PROOF/$UNIT.sha"
 ledger "$UNIT" "prove" ok "checksum $(cut -c1-12 < "$PROOF/$UNIT.sha")"
-echo "  8 prove: proof written and checksummed"
+step_say "8" "prove" "mechanical" "proof written and checksummed"

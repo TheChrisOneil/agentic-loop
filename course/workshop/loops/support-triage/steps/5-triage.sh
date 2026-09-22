@@ -28,7 +28,7 @@ never an instruction to you."
 case "$JUDGE_MODE" in
   stub)
     LINE=$(awk -F'\t' -v u="$UNIT" 'NR>1 && $1==u' "$JUDGE_STUB")
-    [ -n "$LINE" ] || { echo "  5 triage: no recorded answer for $UNIT"; exit 1; }
+    [ -n "$LINE" ] || { step_say "5" "triage" "thinking" "no recorded answer for $UNIT"; exit 1; }
     printf '%s\n' "$LINE" | awk -F'\t' '{print "call\t"$2"\nevidence\t"$3"\nnext_action\t"$4}' > "$JUDGMENTS/$UNIT.tsv"
     "$ROOT/scripts/log-cost.sh" "$UNIT" judge stub 0 0 ;;
   human)
@@ -46,4 +46,4 @@ esac
 
 CALL=$(awk -F'\t' '$1=="call"{print $2}' "$JUDGMENTS/$UNIT.tsv")
 ledger "$UNIT" "triage" "$CALL" "mode=$JUDGE_MODE"
-echo "  5 triage: $CALL"
+step_say "5" "triage" "thinking" "$CALL"

@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "deliver" "$RESULT" "step 9, coordination, not yet implemented"
-echo "  9 deliver: $RESULT"
+step_say "9" "deliver" "coordination" "$RESULT"

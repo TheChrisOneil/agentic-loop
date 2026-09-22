@@ -34,9 +34,11 @@ register:; @tooling/accept.sh --list
 cost:
 	@[ -s memory/usage.tsv ] || { echo "no model calls recorded yet"; exit 0; }
 	@column -t -s"$$(printf '\t')" memory/usage.tsv 2>/dev/null || cat memory/usage.tsv
-	@awk -F'\t' 'NR>1 && $$10 ~ /^[0-9.]+$$/ {n++; s+=$$10; t+=$$6; c+=$$8} \
-	  END{ if(n) printf "\n  %d priced call(s)  $$%.4f  %d output tokens  %d cache reads\n", n, s, t, c; \
-	       else print "\n  no priced calls yet" }' memory/usage.tsv
+	@awk -F'\t' 'NR>1 && $$11 ~ /^[0-9.]+$$/ { n[$$3]++; s[$$3]+=$$11 } \
+	  END{ printf "\n  %-4s %2d call(s)  $$%.4f   designing the loop, paid once\n", "NRE", n["nre"]+0, s["nre"]+0; \
+	       printf "  %-4s %2d call(s)  $$%.4f   running it, per unit of work\n", "RUN", n["run"]+0, s["run"]+0; \
+	       if (n["run"]) printf "  cost per unit of work: $$%.4f\n", s["run"]/n["run"]; \
+	       else print "  cost per unit of work: not yet measured — no run-time calls recorded" }' memory/usage.tsv
 verify:  ; @tooling/accept.sh --verify
 scaffold:; @mkdir -p loops && tooling/scaffold.sh $(DESIGN) loops/$(NAME)
 brief:   ; @tooling/brief.sh $(DESIGN)

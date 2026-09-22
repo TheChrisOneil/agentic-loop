@@ -121,7 +121,8 @@ accept `--use-case <file>` in `start.sh` the way `generate.sh` already does.
 model. The judgment step inside a scaffolded loop logs nothing yet — the generated
 `scripts/log-cost.sh` still takes token counts as arguments and is passed zeros.
 
-**Impact:** you can price designing a loop. You cannot yet price running one.
+**Impact:** you can price designing a loop — that is the `nre` line in `make cost`. You cannot
+yet price running one, so the `run` line reads zero and says so rather than implying free.
 
 **Fix:** have the generated judge step ask the CLI for `--output-format json` and call the same
 `log-cost.sh` the workshop uses.

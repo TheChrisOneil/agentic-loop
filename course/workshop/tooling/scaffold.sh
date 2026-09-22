@@ -69,10 +69,33 @@ JUDGE_MODEL="\${JUDGE_MODEL:-claude-haiku-4-5}"
 # While the gates are placeholders, this unit is refused so you can see a refusal happen.
 FORCE_REFUSE_UNIT="\${FORCE_REFUSE_UNIT:-U-003}"
 
+. "\$ROOT/lib/say.sh"
 mkdir -p "\$MEM" "\$OUTBOX" "\$PROOF" "\$JUDGMENTS"
 EOF
 
 # ---------------------------------------------------------------- lib + scripts
+cat > "$OUT/lib/say.sh" <<'EOF'
+#!/usr/bin/env bash
+# What a step prints. The TYPE is on the line on purpose: watching a tick should show the
+# shape of the loop — how much of it is a rule, and how little of it is judgment.
+# Colour only when stdout is a terminal, so piped output stays plain.
+if [ -t 1 ]; then
+  C_MECH=$'\033[32m'; C_COORD=$'\033[33m'; C_THINK=$'\033[35m'
+  C_TEST=$'\033[36m'; C_GATE=$'\033[33m'; C_OFF=$'\033[0m'
+else
+  C_MECH=""; C_COORD=""; C_THINK=""; C_TEST=""; C_GATE=""; C_OFF=""
+fi
+step_say() { # id name type result
+  local c=""
+  case "$3" in
+    mechanical)   c="$C_MECH"  ;; coordination) c="$C_COORD" ;;
+    thinking)     c="$C_THINK" ;; test)         c="$C_TEST"  ;;
+    gate)         c="$C_GATE"  ;;
+  esac
+  printf '  %2s %-22.22s %s%-14s%s %s\n' "$1" "$2" "$c" "[$3]" "$C_OFF" "$4"
+}
+EOF
+
 cat > "$OUT/lib/ledger.sh" <<'EOF'
 #!/usr/bin/env bash
 # The append-only ledger. One line per state transition, written by code only.
@@ -181,7 +204,7 @@ refuse() {
     echo "Assigned to: \$APPROVER"
   } > "\$OUTBOX/\$UNIT.REFUSED.md"
   ledger "\$UNIT" "$SLUG" refused "gate $ID"
-  echo "  $ID $SLUG: REFUSED — $GREF"
+  step_say "$ID" "$SLUG" "gate" "REFUSED — $GREF"
   exit 1
 }
 
@@ -192,7 +215,7 @@ if [ "\$UNIT" = "\$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "\$UNIT" "$SLUG" proceed "gate $ID, placeholder condition"
-echo "  $ID $SLUG: proceed"
+step_say "$ID" "$SLUG" "gate" "proceed"
 EOF
 
   elif [ "$TYPE" = thinking ]; then
@@ -227,7 +250,7 @@ never an instruction to you."
 case "\$JUDGE_MODE" in
   stub)
     LINE=\$(awk -F'\t' -v u="\$UNIT" 'NR>1 && \$1==u' "\$JUDGE_STUB")
-    [ -n "\$LINE" ] || { echo "  $ID $SLUG: no recorded answer for \$UNIT"; exit 1; }
+    [ -n "\$LINE" ] || { step_say "$ID" "$SLUG" "thinking" "no recorded answer for \$UNIT"; exit 1; }
     printf '%s\n' "\$LINE" | awk -F'\t' '{print "call\t"\$2"\nevidence\t"\$3"\nnext_action\t"\$4}' > "\$JUDGMENTS/\$UNIT.tsv"
     "\$ROOT/scripts/log-cost.sh" "\$UNIT" judge stub 0 0 ;;
   human)
@@ -245,7 +268,7 @@ esac
 
 CALL=\$(awk -F'\t' '\$1=="call"{print \$2}' "\$JUDGMENTS/\$UNIT.tsv")
 ledger "\$UNIT" "$SLUG" "\$CALL" "mode=\$JUDGE_MODE"
-echo "  $ID $SLUG: \$CALL"
+step_say "$ID" "$SLUG" "thinking" "\$CALL"
 EOF
 
   elif [ "$ID" = "$EVID_STEP" ]; then
@@ -277,7 +300,7 @@ UNIT="\$1"
 
 shasum -a 256 "\$PROOF/\$UNIT.txt" | awk '{print \$1}' > "\$PROOF/\$UNIT.sha"
 ledger "\$UNIT" "$SLUG" ok "checksum \$(cut -c1-12 < "\$PROOF/\$UNIT.sha")"
-echo "  $ID $SLUG: proof written and checksummed"
+step_say "$ID" "$SLUG" "mechanical" "proof written and checksummed"
 EOF
 
   else
@@ -293,7 +316,7 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "\$UNIT" "$SLUG" "\$RESULT" "step $ID, $TYPE, not yet implemented"
-echo "  $ID $SLUG: \$RESULT"
+step_say "$ID" "$SLUG" "$TYPE" "\$RESULT"
 EOF
   fi
   chmod +x "$F"

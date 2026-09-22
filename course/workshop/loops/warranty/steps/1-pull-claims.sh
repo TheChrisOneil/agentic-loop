@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "pull-claims" "$RESULT" "step 1, mechanical, not yet implemented"
-echo "  1 pull-claims: $RESULT"
+step_say "1" "pull-claims" "mechanical" "$RESULT"

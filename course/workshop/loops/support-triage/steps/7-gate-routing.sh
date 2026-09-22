@@ -29,7 +29,7 @@ refuse() {
     echo "Assigned to: $APPROVER"
   } > "$OUTBOX/$UNIT.REFUSED.md"
   ledger "$UNIT" "gate-routing" refused "gate 7"
-  echo "  7 gate-routing: REFUSED — Return the batch to the duty manager and have a person assign the orphaned messages by hand"
+  step_say "7" "gate-routing" "gate" "REFUSED — Return the batch to the duty manager and have a person assign the orphaned messages by hand"
   exit 1
 }
 
@@ -40,4 +40,4 @@ if [ "$UNIT" = "$FORCE_REFUSE_UNIT" ]; then refuse; fi
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "gate-routing" proceed "gate 7, placeholder condition"
-echo "  7 gate-routing: proceed"
+step_say "7" "gate-routing" "gate" "proceed"

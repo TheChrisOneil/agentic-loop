@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "coverage" "$RESULT" "step 6, test, not yet implemented"
-echo "  6 coverage: $RESULT"
+step_say "6" "coverage" "test" "$RESULT"

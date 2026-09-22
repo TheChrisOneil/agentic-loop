@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "order-and-cap" "$RESULT" "step 4, coordination, not yet implemented"
-echo "  4 order-and-cap: $RESULT"
+step_say "4" "order-and-cap" "coordination" "$RESULT"

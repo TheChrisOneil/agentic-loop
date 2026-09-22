@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "group" "$RESULT" "step 2, mechanical, not yet implemented"
-echo "  2 group: $RESULT"
+step_say "2" "group" "mechanical" "$RESULT"

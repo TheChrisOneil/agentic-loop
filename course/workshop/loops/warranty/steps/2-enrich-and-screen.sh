@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "enrich-and-screen" "$RESULT" "step 2, mechanical, not yet implemented"
-echo "  2 enrich-and-screen: $RESULT"
+step_say "2" "enrich-and-screen" "mechanical" "$RESULT"

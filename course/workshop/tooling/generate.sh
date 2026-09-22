@@ -127,7 +127,7 @@ else
     json_get "$SCRATCH/raw.json" result > "$SCRATCH/raw.txt" 2>/dev/null || : > "$SCRATCH/raw.txt"
     # no parser, or an unexpected shape: fall back to treating the reply as plain text
     [ -s "$SCRATCH/raw.txt" ] || cp "$SCRATCH/raw.json" "$SCRATCH/raw.txt"
-    "$HERE/log-cost.sh" "$SLUG" generate "$MODEL" "$SCRATCH/raw.json"
+    "$HERE/log-cost.sh" "$SLUG" generate "$MODEL" "$SCRATCH/raw.json" nre
     # keep only the design: from the first @meta to the end
     awk '/^@meta/{on=1} on' "$SCRATCH/raw.txt" | sed 's/^```.*$//' > "$DESIGN"
     if [ ! -s "$DESIGN" ]; then

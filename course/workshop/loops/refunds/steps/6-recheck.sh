@@ -17,4 +17,4 @@ RESULT="placeholder"
 # -----------------------------------------------------------------------------
 
 ledger "$UNIT" "recheck" "$RESULT" "step 6, test, not yet implemented"
-echo "  6 recheck: $RESULT"
+step_say "6" "recheck" "test" "$RESULT"

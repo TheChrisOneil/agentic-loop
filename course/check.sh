@@ -159,7 +159,7 @@ TXT
         # The call must leave a priced row. A generator that spends money and records nothing
         # is the hole this course admits to having.
         ROWS_AFTER=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)
-        LAST=$(awk -F'\t' 'END{print $11"\t"$10}' workshop/memory/usage.tsv 2>/dev/null)
+        LAST=$(awk -F'\t' 'END{print $12"\t"$11}' workshop/memory/usage.tsv 2>/dev/null)
         SRC=${LAST%%	*}; USD=${LAST##*	}
         if [ "$ROWS_AFTER" -gt "$ROWS_BEFORE" ] && [ "$SRC" = cli ]; then
           pass "the call was costed: \$$USD, from the CLI"

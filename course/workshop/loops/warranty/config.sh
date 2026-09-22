@@ -15,4 +15,5 @@ JUDGE_MODEL="${JUDGE_MODEL:-claude-haiku-4-5}"
 # While the gates are placeholders, this unit is refused so you can see a refusal happen.
 FORCE_REFUSE_UNIT="${FORCE_REFUSE_UNIT:-U-003}"
 
+. "$ROOT/lib/say.sh"
 mkdir -p "$MEM" "$OUTBOX" "$PROOF" "$JUDGMENTS"
