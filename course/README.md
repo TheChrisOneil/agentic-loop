@@ -3,8 +3,7 @@
 Everything needed to run the session: the deck, the run sheet, the student exercise, and a
 working loop you can execute live in front of the room.
 
-Source of record for the framework: `../../eb-city/docs/course/the-loop-primer.md`.
-This folder is the teaching package built from it.
+`deck.md` is the source of record for the framework. Everything else here supports it.
 
 ```
 course/
