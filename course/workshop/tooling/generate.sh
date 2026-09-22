@@ -176,5 +176,5 @@ echo "  jobs/$SLUG/proposed.design   the design itself"
 echo "  jobs/$SLUG/job.tsv           what happened, in order"
 echo
 echo "  Discuss it. Then, when it is right:"
-echo "    ./accept.sh jobs/$SLUG/proposed.design --by \"Name, Role\""
-echo "    ./scaffold.sh jobs/$SLUG/proposed.design loops/$SLUG"
+echo "    tooling/accept.sh jobs/$SLUG/proposed.design --by \"Name, Role\""
+echo "    tooling/scaffold.sh jobs/$SLUG/proposed.design loops/$SLUG"

@@ -153,10 +153,29 @@ customer's size, which needs somebody who knows the sector. It takes about five 
 TXT
     OUT=$(cd workshop && tooling/generate.sh --use-case /tmp/check-usecase.txt --name _check --by "Rehearsal" 2>&1)
     case "$OUT" in
-      *"0 failed"*) pass "a described process became a validated design" ;;
-      *) fail "the live generation did not produce a valid design" "cd workshop && read jobs/_check/job.tsv" "$(printf '%s' "$OUT" | tail -1)" ;;
+      *"0 failed"*)
+        pass "a described process became a validated design"
+        rm -rf workshop/jobs/_check /tmp/check-usecase.txt ;;
+      *)
+        # Keep the evidence. A failure message that points at a file the script just deleted
+        # is worse than no message: it sends the reader somewhere that no longer exists.
+        fail "the live generation did not produce a valid design" \
+             "the job is kept at workshop/jobs/_check — read job.tsv, then .scratch/raw.txt for what the model actually returned" \
+             "a design that passes the validator" \
+             "$(printf '%s' "$OUT" | grep -v '^[[:space:]]*$' | tail -1 | sed 's/^[[:space:]]*//')"
+        echo
+        echo "            what the job recorded:"
+        sed 's/^/              /' workshop/jobs/_check/job.tsv 2>/dev/null | tail -6
+        if [ -s workshop/jobs/_check/.scratch/raw.err ]; then
+          echo "            what the CLI said on stderr:"
+          sed 's/^/              /' workshop/jobs/_check/.scratch/raw.err | head -5
+        fi
+        if [ -f workshop/jobs/_check/.scratch/raw.txt ]; then
+          echo "            first line of the model reply:"
+          printf '              %s\n' "$(head -1 workshop/jobs/_check/.scratch/raw.txt)"
+        fi
+        echo ;;
     esac
-    rm -rf workshop/jobs/_check /tmp/check-usecase.txt
   fi
 fi
 

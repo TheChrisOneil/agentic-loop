@@ -157,7 +157,26 @@ a subject.
 
 ---
 
-## 10. The deck lives outside this repo
+## 10. A live generation can fail for reasons outside the repo
+
+`./check.sh --live` and `tooling/generate.sh` both depend on the `claude` CLI reaching a model.
+When they fail, the cause is usually not the code:
+
+| What the CLI says | What it means |
+|---|---|
+| `credit balance is too low` | The account is out of credit. Nothing here can fix it |
+| a model id error | `GENERATE_MODEL` names a model this account cannot reach. Try `GENERATE_MODEL=claude-sonnet-5` |
+| nothing on stderr, empty reply | Network, proxy, or the CLI is not signed in — `claude -p "say ok"` on its own tests that |
+
+**The job is kept on failure** at `workshop/jobs/_check/`. Read `job.tsv`, then
+`.scratch/raw.err` for what the CLI said and `.scratch/raw.txt` for what came back.
+
+**Impact:** the session does not need this. Everything else runs with no key, and the demo is
+what you present. `--live` is only for rehearsing a generation in front of the room.
+
+---
+
+## 11. The deck lives outside this repo
 
 `course/deck.md` is the source of record for the content. The presented deck is a private
 Artifact, and the two are kept in step by hand.
