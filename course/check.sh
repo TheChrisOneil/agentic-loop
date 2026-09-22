@@ -172,6 +172,30 @@ TXT
     case "$OUT" in
       *"0 failed"*)
         pass "a described process became a validated design"
+
+        # Carry the fresh design the whole way — accept, build, run. Ticking loops that were
+        # scaffolded days ago proves those loops still work, not that the chain still works.
+        # The acceptance goes in a scratch register so a rehearsal does not append to the real
+        # one; the register's location is configuration, the gate is the control.
+        CHAIN_REG=$(mktemp -t acceptances)
+        rm -rf workshop/loops/_check
+        if printf 'I accept\n' | ACCEPT_REGISTER="$CHAIN_REG" \
+             make -C workshop accept DESIGN=jobs/_check/proposed.design BY="Rehearsal, Check" >/dev/null 2>&1; then
+          pass "the design was accepted by name"
+        else
+          fail "the fresh design could not be accepted" "cd workshop && make accept DESIGN=jobs/_check/proposed.design BY=\"Name, Role\""
+        fi
+        if ACCEPT_REGISTER="$CHAIN_REG" make -C workshop scaffold DESIGN=jobs/_check/proposed.design NAME=_check >/dev/null 2>&1; then
+          pass "a loop was built from it"
+        else
+          fail "the accepted design could not be scaffolded" "cd workshop && make scaffold DESIGN=jobs/_check/proposed.design NAME=_check"
+        fi
+        TICK=$(cd workshop/loops/_check 2>/dev/null && make tick 2>&1 || true)
+        case "$TICK" in
+          *"worked 3"*) pass "the loop it built ticks: $(printf '%s' "$TICK" | grep -o 'worked 3.*failed 0')" ;;
+          *) fail "the loop built from the fresh design does not tick" "cd workshop/loops/_check && make tick" ;;
+        esac
+        rm -rf workshop/loops/_check "$CHAIN_REG"
         # The call must leave a priced row. A generator that spends money and records nothing
         # is the hole this course admits to having.
         ROWS_AFTER=$(wc -l < workshop/memory/usage.tsv 2>/dev/null || echo 0)

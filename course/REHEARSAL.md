@@ -223,7 +223,9 @@ Needs the `claude` CLI and a working key. **Skip it if you will not run it live.
 tooling/generate.sh --use-case /tmp/my-process.txt --name rehearsal --by "Your Name"
 ```
 
-**Expect:** `21 passed, 0 failed` and three files under `jobs/rehearsal/`.
+**Expect:** the design validated, accepted, built and ticking — five PASS lines. `make ready-live`
+carries a freshly generated design the whole way to a running loop, which is the only check
+that exercises accept and scaffold on something made that minute.
 
 ☐ Then clean up: `rm -rf jobs/rehearsal`
 
