@@ -1,0 +1,5 @@
+unit_id	call	adjustment	evidence	next_action
+PO-1005	duplicate	-600.00	INV-7007 line is identical to INV-7002 on supplier, sku, quantity and unit price	Reject INV-7007 and notify accounts payable before the payment run
+PO-1003	partial	0.00	Invoice quantity 3 against purchase order quantity 4; no back-order reference on the invoice	Confirm with Cedar Logistics whether the fourth unit shipped, then close or amend PO-1003
+PO-1006	dispute	-720.00	PO-1006 records a unit price of 420.00; the invoice bills 480.00; no signed amendment exists against this purchase order	Hold 720.00 and request a credit note or a countersigned amendment from Vantage Software
+PO-1007	not_on_po	-120.00	Line FUEL-SUR does not appear on PO-1007 in any quantity	Request a purchase order amendment or a credit for 120.00 from Cedar Logistics

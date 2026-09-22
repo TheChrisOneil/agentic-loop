@@ -1,0 +1,58 @@
+@meta
+use_case: Triage and adjudicate dealer warranty claims on returned hardware, routing only genuinely ambiguous claims to a product expert.
+author: Team 4
+date: 2026-09-22
+approver: Warranty Operations Lead (regional manager for claims over 2000 USD)
+exit_criterion: Shut down the loop if expert-review referral rate exceeds 30 percent of claims for two consecutive months, or if reversal rate on auto-approved claims exceeds 2 percent.
+
+@assumptions
+- The dealer portal exposes each claim as a record with claim number, serial, dealer id, fault description text, purchase date, submission date, and zero or more photograph attachments, retrievable by query.
+- A serial-to-warranty-registration table exists and gives sale date and warranty term per serial; warranty window is computed as purchase date plus term.
+- A written covered-fault list exists and can be encoded as a keyword-and-category mapping; wear-and-tear exclusions are on the same list.
+- Claim value is available at submission time, or is computed from a parts-and-labor price table keyed by fault category; assumed available before adjudication.
+- Assumed a duplicate-claim check keyed on serial across all historical claims regardless of claim number, since the two known double-payment incidents used different claim numbers on the same serial.
+- Assumed a single-approver cap of 2000 USD, taken directly from the description; claims at or above this route to the regional manager.
+- Assumed the "roughly one in six" hard-claim rate (approximately 17 percent) as the expected referral baseline, giving about 42 of 250 monthly claims.
+- Assumed photographs are machine-retrievable image files, and that impact-damage assessment from photographs is a judgment a rule cannot make.
+- Assumed dealer-written fault descriptions are untrusted external text and must be screened before any model reads them.
+- Assumed a monthly volume of 250 claims and a working cap of 60 model-assessed claims per month, above the 42 expected, to absorb variance without unbounded spend.
+- Assumed technicians remain in the loop as the approving humans; the loop proposes, it does not pay.
+- Assumed no instruction embedded in a dealer description is ever executed; none was observed in the supplied text.
+
+@unit
+definition: One warranty claim, identified by claim number, for one serial number.
+kind: rule
+two_people_test: Two technicians given the same portal export produce the same list of claims, because the portal assigns one claim number per submission and no splitting or merging judgment is involved.
+fanout: 60
+fanout_reason: Expected 42 ambiguous claims per month (one in six of 250) plus headroom; the cap bounds monthly model spend and forces overflow into the technician queue rather than silent growth.
+
+@steps
+1 | pull_claims | mechanical | code | Retrieve all new portal claims with fields, attachments, and submission timestamps into a normalized record set | batch
+2 | enrich_and_screen | mechanical | code | Join warranty registration, covered-fault list, claim value, and prior-claim history per serial; strip control characters and flag instruction-like text in dealer descriptions | batch
+3 | rule_adjudicate | mechanical | code | Decide date-clear, fault-on-list, no-prior-serial claims as approve, and out-of-window or excluded-fault claims as deny, with the deciding figures recorded | batch
+4 | order_and_cap | coordination | code | Rank residual ambiguous claims by claim value then age and admit at most 60 to model assessment; the remainder go to the technician queue | batch
+5 | safety_gate | gate | code | Refuse any admitted claim that is missing a purchase date, has an unreadable photograph, or carries a screening flag from step 2 | unit
+6 | assess_ambiguity | thinking | model | Read the dealer description and photographs and state whether the described fault is a covered fault, whether the photographs show impact damage not mentioned, and the reasoning | unit
+7 | recompute_checks | test | code | Independently recompute warranty window, covered-fault classification, duplicate-serial status, and claim value from source records without using the model output | unit
+8 | consistency_gate | gate | code | Refuse when the model conclusion contradicts any recomputed check, when duplicate-serial count is 1 or more, or when the model cites no photograph for an impact-damage claim | unit
+9 | write_proof | mechanical | code | Write the decision record with all inputs, recomputed figures, model text, gate outcomes, and a SHA-256 checksum | unit
+10 | route_proposal | coordination | code | Deliver the proposal to the assigned technician, or to the regional manager when claim value is 2000 USD or more | unit
+
+@gates
+5 | Refuse when purchase date is absent, or photograph count is 1 or more and readable photograph count is less than photograph count, or the instruction-flag count is 1 or more | Warranty Operations Coordinator returns the claim to the submitting dealer with a named missing-field request and a 5-business-day response window
+8 | Refuse when the model conclusion disagrees with any recomputed field, or duplicate-serial count is 1 or more, or an impact-damage finding cites zero photographs | Senior Product Technician opens the claim, inspects the unit and photographs directly, and records a written adjudication in the claim record
+10 | Refuse to auto-route when claim value is 2000 USD or more; such a claim is never delivered to a technician for final approval | Regional Manager reviews the proposal and the evidence record and issues pay or deny within 2 business days
+
+@evidence
+writer_step: 9
+artifact: Claim number, serial, dealer id, purchase date, warranty window computed, fault classification, duplicate-serial hits with their claim numbers, claim value, photograph hashes, model assessment text verbatim, recomputed check results, every gate outcome, and the final routing target.
+integrity: Each record is SHA-256 checksummed over its canonical serialization, the checksum is chained to the prior record's checksum, and a nightly cron re-verifies the chain; any mismatch alerts the Warranty Operations Lead.
+
+@kpis
+cost_per_claim_decided | cost | unmeasured
+model_spend_per_month | cost | unmeasured
+auto_approval_reversal_rate | quality | unmeasured
+duplicate_serial_payments | control | 2 known incidents to date
+days_submission_to_decision | throughput | 8 days
+expert_referral_rate | quality | approximately 17 percent assumed
+claims_decided_without_model | throughput | unmeasured

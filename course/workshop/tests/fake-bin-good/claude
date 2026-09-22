@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Always emits a valid design. Used by tests/flow.sh to exercise the whole job flow
+# with no model call and no network.
+PROMPT=$(cat)
+if printf '%s' "$PROMPT" | grep -q "Changes the reviewer asked for"; then
+  sed 's/^fanout: .*/fanout: 4/; s/^fanout_reason: .*/fanout_reason: Reduced after review — bounded by one reviewer in a morning/' \
+      "$(dirname "$0")/../fixtures/good.design"
+else
+  cat "$(dirname "$0")/../fixtures/good.design"
+fi

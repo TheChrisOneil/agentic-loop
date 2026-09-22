@@ -1,0 +1,9 @@
+po_id	supplier	sku	qty	unit_price
+PO-1001	Northwind Paper	PAPER-A4	100	4.50
+PO-1002	Northwind Paper	TONER-K	10	89.00
+PO-1003	Cedar Logistics	FREIGHT-STD	4	250.00
+PO-1004	Halcyon Medical	GLOVE-M	200	0.34
+PO-1005	Ridgeline Print	BROCHURE	5000	0.12
+PO-1006	Vantage Software	SEAT-YR	12	420.00
+PO-1007	Cedar Logistics	FREIGHT-EXP	2	400.00
+PO-1008	Northwind Paper	ENV-DL	50	1.10

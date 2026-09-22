@@ -1,0 +1,18 @@
+We handle warranty claims on returned hardware. About 250 claims a month arrive through the
+dealer portal. Each claim has a serial number, a fault description written by the dealer, a
+purchase date, and sometimes photographs.
+
+Two technicians work the queue. For each claim they check whether the serial is still inside
+its warranty window, whether the fault described is a covered fault or wear and tear, and
+whether the same serial has been claimed before. Most claims are straightforward: the dates
+line up and the fault is on the covered list.
+
+The hard ones are where the dealer's description is ambiguous, or where the photographs
+suggest impact damage that the description does not mention. Those need somebody who knows the
+product to look. Roughly one in six.
+
+Claims over 2000 dollars go to the regional manager regardless. We have had two cases where a
+dealer submitted the same serial twice under different claim numbers and both were paid.
+
+Today it takes about eight days from submission to a decision, and the technicians say the
+queue is the worst part of their job.

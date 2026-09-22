@@ -1,0 +1,3 @@
+People send us purchase requisitions and somebody has to approve them. Some are fine, some
+are not. It takes a while and we would like it to take less time. There are quite a lot of
+them each week and the finance team is busy.

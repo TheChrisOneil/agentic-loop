@@ -1,0 +1,5 @@
+# Everything the loop writes. `make clean` removes all of it.
+memory/
+proof/
+outbox/
+judgments/
