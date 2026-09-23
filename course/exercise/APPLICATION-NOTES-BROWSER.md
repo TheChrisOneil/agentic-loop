@@ -9,8 +9,9 @@ running the wrapper.
 2. A failed design goes back to the assistant by hand, rather than automatically
 3. **The cost is estimated, not measured** — a browser reports no token counts
 
-**Parts A and C are identical.** Follow `APPLICATION-NOTES.md` for those. Only Part B changes,
-and this file replaces B2 and B3.
+**Part A is identical, and Part C is identical but for one command.** Follow
+`APPLICATION-NOTES.md` for those. Only Part B changes, and this file replaces B2 and B3. The one
+Part C difference is at the end of this file.
 
 ---
 
@@ -90,3 +91,34 @@ design.
 
 `make history NAME=team-N` will show almost nothing on this route — the wrapper writes that
 record, and you did its job by hand. That absence is itself worth noticing.
+
+---
+
+## Part C, on this route
+
+C1 and C3 onward are unchanged. One command in C2's fallback does not exist for you.
+
+**`make revise` needs the wrapper.** When the scaffolder refuses and the main notes tell you to
+revise, you revise by pasting instead — hand the assistant the current design *and* the
+refusal text, ask for the whole file back, and save it over `proposed.design` the same way you
+did in B3. Then the remaining three steps are exactly as written:
+
+```bash
+make check  DESIGN=jobs/team-N/proposed.design
+make accept DESIGN=jobs/team-N/proposed.design BY="Your Name, Your Role"
+make scaffold DESIGN=jobs/team-N/proposed.design NAME=team-N
+```
+
+Accepting again is not optional here either. You changed the design, so the old signature does
+not cover it.
+
+**One refusal is more likely on this route.** The scaffolder counts the gates in your design
+against the gates that reached the code, and refuses if they differ:
+
+```
+REFUSED: the design has 4 gate(s) and only 2 reached the code.
+```
+
+A hand-pasted design is the likeliest place for a gate to arrive malformed. If you see this,
+nothing was left behind — the half-built loop is deleted. Go back through the revise steps
+above. And say so in the room: a build that catches itself is the thing the session is about.

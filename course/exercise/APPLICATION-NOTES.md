@@ -263,6 +263,10 @@ nothing and builds nothing.
 
 **"the team" is refused.** An acceptance nobody signed is not an acceptance.
 
+**Every command that touches a design names it.** `DESIGN=` has no default and never guesses.
+A missing one prints the form and does nothing — which is the point: a tool that guesses which
+design you meant can sign for the wrong one.
+
 ### C2 · Build the loop
 
 ```bash
@@ -270,6 +274,10 @@ make scaffold DESIGN=jobs/team-N/proposed.design NAME=team-N
 ```
 
 It refuses to build a design nobody accepted. That is C1 doing its job.
+
+It also counts. Before it reports success it counts the gates in your design and the gates that
+reached the code, and if the two numbers differ it deletes what it built and says so. A loop
+missing one of your gates is worse than no loop, because it looks finished.
 
 **If it refuses for another reason** — a gate that names no step, a design it cannot draw — the
 message names the way back, and it runs through acceptance again:
@@ -340,5 +348,7 @@ reconcile an invoice against a purchase order. That gap is your job.
 | The validator fails and you disagree with it | Good. Say so out loud — some rules are arguable, and the argument is the lesson |
 | `REFUSED: this design has not been accepted` | Run C1 first. The gate is working |
 | `CHANGED SINCE ACCEPTANCE` | You edited the design after accepting it. Accept the new version |
+| `REFUSED: the design has N gate(s) and only M reached the code` | The build caught itself dropping a gate. Nothing was left behind. Report it — this one is worth seeing |
+| `make status` answers about a design you did not name | It cannot. `DESIGN=` has no default. Check which path you typed |
 | `REFUSED: the claude CLI is not installed` | Switch to `APPLICATION-NOTES-BROWSER.md` |
 | Anything else | `KNOWN-ISSUES.md` at the repository root lists what is already understood |
