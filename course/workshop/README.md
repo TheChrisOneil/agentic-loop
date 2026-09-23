@@ -79,6 +79,30 @@ single run, because it is the hole this course admits to having.
 | `tooling/lib/validate.awk`, `tooling/lib/render-*.awk` | The rule set and the two views |
 | `examples/broken.design` | Fails 14 checks. Teaching material |
 
+### Use-case samples
+
+Five described processes, in the voice a process owner actually uses, for anyone who arrives
+without one of their own. Each carries volume, who does it today, the exceptions, at least two
+numeric thresholds, a named approver and a failure that already happened.
+
+| File | The process | The judgment it hides |
+|---|---|---|
+| `examples/onboarding-kyc.use-case.txt` | Business-customer onboarding, 180/month | Whether the documents evidence the ownership claimed |
+| `examples/prior-auth.use-case.txt` | Clinical prior authorization, 900/month | Whether the notes support medical necessity as the policy defines it |
+| `examples/expense-audit.use-case.txt` | Expense report audit, 1,200 lines/month | Whether a line has a business purpose |
+| `examples/grant-eligibility.use-case.txt` | Community grant screening, 140/cycle | Whether the project falls inside the funding scope |
+| `examples/rfp-qualification.use-case.txt` | Inbound RFP bid/no-bid, 60/month | Whether we can meet the mandatory requirements as written |
+
+Use one as the input to a generation:
+
+```bash
+make generate NAME=demo UC=examples/prior-auth.use-case.txt
+```
+
+`prior-auth` was generated as a check and passed 22 of 22 on the first attempt, no repairs.
+It is also the one that carries a regulated-data constraint, which is worth watching: PHI in
+the description should show up as a constraint in the design, not as a sentence nobody acted on.
+
 ## The renderer
 
 A design becomes a diagram **by a rule, never by a model**. Same design in, same bytes out —
