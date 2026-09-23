@@ -1,5 +1,4 @@
 .PHONY: help job method history show start jobs revise rules check example broken format brief diagram flow generate estimate accept status register cost verify scaffold test clean
-DESIGN ?= examples/invoices.design
 MODEL  ?= browser-assistant
 help:
 	@echo "make job NAME=slug        start a job: a folder, an empty use case, your editor"
@@ -27,7 +26,9 @@ help:
 	@echo "make format               the design format specification"
 	@echo "make test                 the whole pipeline, with a stub model — no key needed"
 	@echo "make clean                remove anything make brief left beside a design"
-check:   ; @tooling/validate.sh $(DESIGN)
+check:
+	@[ -n "$(DESIGN)" ] || { echo "make check DESIGN=path"; exit 64; }
+	@tooling/validate.sh $(DESIGN)
 example: ; @tooling/validate.sh examples/invoices.design
 broken:  ; @tooling/validate.sh examples/broken.design || true
 rules:   ; @tooling/validate.sh --rules
@@ -70,9 +71,11 @@ generate:
 	@tooling/generate.sh --name $(NAME) --use-case $(UC)
 test:    ; @tooling/tests/flow.sh && echo && tooling/tests/repair-path.sh && echo && tooling/tests/repair-budget.sh
 accept:
-	@[ -n "$(BY)" ] || { echo "make accept DESIGN=<design> BY=\"Name, Role\""; exit 64; }
+	@[ -n "$(DESIGN)" ] && [ -n "$(BY)" ] || { echo "make accept DESIGN=<design> BY=\"Name, Role\""; exit 64; }
 	@tooling/accept.sh $(DESIGN) --by "$(BY)"
-status:  ; @tooling/accept.sh --status $(DESIGN)
+status:
+	@[ -n "$(DESIGN)" ] || { echo "make status DESIGN=path"; exit 64; }
+	@tooling/accept.sh --status $(DESIGN)
 register:; @tooling/accept.sh --list
 revise:
 	@[ -n "$(NAME)" ] || { echo "make revise NAME=<slug> ASK=\"what should change\""; exit 64; }
@@ -92,9 +95,15 @@ cost:
 	 fi
 verify:  ; @tooling/accept.sh --verify
 scaffold:
-	@[ -n "$(NAME)" ] || { echo "make scaffold DESIGN=<design> NAME=<folder under loops/>"; exit 64; }
+	@[ -n "$(DESIGN)" ] && [ -n "$(NAME)" ] || { echo "make scaffold DESIGN=<design> NAME=<folder under loops/>"; exit 64; }
 	@mkdir -p loops && tooling/scaffold.sh $(DESIGN) loops/$(NAME)
-brief:   ; @tooling/brief.sh $(DESIGN)
-diagram: ; @tooling/render.sh $(DESIGN)
-flow:    ; @tooling/render.sh --flow $(DESIGN)
+brief:
+	@[ -n "$(DESIGN)" ] || { echo "make brief DESIGN=path"; exit 64; }
+	@tooling/brief.sh $(DESIGN)
+diagram:
+	@[ -n "$(DESIGN)" ] || { echo "make diagram DESIGN=path"; exit 64; }
+	@tooling/render.sh $(DESIGN)
+flow:
+	@[ -n "$(DESIGN)" ] || { echo "make flow DESIGN=path"; exit 64; }
+	@tooling/render.sh --flow $(DESIGN)
 clean:   ; @rm -rf examples/diagrams examples/BRIEF.md && echo "cleaned — jobs/, loops/ and memory/ are records and are left alone"
