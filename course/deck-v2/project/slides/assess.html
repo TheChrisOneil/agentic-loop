@@ -1,0 +1,16 @@
+<section id="assess" style="background:#EEF0EA; color:#1A2230; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:24px">
+  <p style="font-size:28px; font-weight:500; letter-spacing:3px; text-transform:uppercase; color:#8F3754">Assessing the engineering, without being an engineer</p>
+  <h2 style="font-family:'Source Serif 4', Georgia, serif; font-size:62px; font-weight:400; line-height:1.1">Seven questions, and what a weak answer sounds like</h2>
+  <table style="font-family:'IBM Plex Sans', Arial, sans-serif; font-size:25px; border:1px solid #D7DAD2; padding:12px 16px">
+    <tr style="background:#FBFBF8"><th style="width:44%; text-align:left; font-weight:600">Ask</th><th style="width:56%; text-align:left; font-weight:600">A weak answer</th></tr>
+    <tr><td>What is the unit of work?</td><td>&#8220;It processes invoices.&#8221; No unit means no cost per unit</td></tr>
+    <tr style="background:#F7F8F4"><td>Which single step is the judgment?</td><td>&#8220;The model handles the whole thing&#8221;</td></tr>
+    <tr><td>What checks that judgment, and is the check deterministic?</td><td>&#8220;We ask the model to double-check itself&#8221;</td></tr>
+    <tr style="background:#F7F8F4"><td>Show me a refusal. What did it say?</td><td>&#8220;It has not refused anything yet&#8221; &#8212; then it is untested</td></tr>
+    <tr><td>What proof does a reviewer read, and who wrote it?</td><td>Proof written by the same step that made the claim</td></tr>
+    <tr style="background:#F7F8F4"><td>What is the cost per completed decision?</td><td>A price per thousand tokens</td></tr>
+    <tr><td>How do you know the build matches the approved design?</td><td>&#8220;We reviewed it&#8221; &#8212; ask what <i>counts</i> it</td></tr>
+  </table>
+  <p style="font-size:31px; line-height:1.4; width:1660px"><b>None of these requires you to read code.</b> All of them are answerable in one sentence by a team that has done the work, and answerable in a paragraph by a team that has not.</p>
+  <aside>You will sit in reviews where you are the least technical person in the room, and these seven questions are enough. What is the unit of work — no unit means no cost per unit and no KPI. Which single step is the judgment — if the answer is that the model handles the whole thing, nobody has decomposed anything. What checks the judgment, and is the check deterministic — asking the model to check itself is not a control, it is the same coin flipped twice. Show me a refusal, and read what it said; a system that has never refused anything has never been tested, and a refusal with no reason in it will not survive an audit. What proof does a reviewer read and who wrote it — proof written by the step that made the claim is worthless, and this one catches real designs regularly. Cost per completed decision, not per thousand tokens. And the last one is the newest: how do you know the build matches the design that was approved — the good answer names something that counts, not somebody who looked. Note the line at the bottom. None of this requires reading code. A team that has done the work answers each in a sentence. (4 min)</aside>
+</section>

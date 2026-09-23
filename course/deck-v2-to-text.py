@@ -1,5 +1,18 @@
-import json, html, pathlib, re
+#!/usr/bin/env python3
+"""Regenerate deck-v2.md from the deck sources in deck-v2/project/.
+
+Run it from anywhere:  python3 course/deck-v2-to-text.py
+Paths resolve against this file, never against the working directory.
+"""
+import json, html, pathlib, re, sys
 from html.parser import HTMLParser
+
+HERE = pathlib.Path(__file__).resolve().parent
+ROOT = pathlib.Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else HERE / "deck-v2"
+INDEX = ROOT / "project" / "deck.json"
+OUT = HERE / "deck-v2.md"
+if not INDEX.is_file():
+    sys.exit("no deck index at %s — pass the deck root as an argument" % INDEX)
 
 class S(HTMLParser):
     def __init__(self):
@@ -48,15 +61,15 @@ class S(HTMLParser):
     def handle_data(self, d):
         self.buf+=d
 
-d=json.loads(pathlib.Path("project/deck.json").read_text())
+d=json.loads(INDEX.read_text())
 lines=["# The Loop V2 — full text for markup",
 "",
 "Every word that appears on a slide, plus the speaker notes, in deck order. Edit this file directly, or leave a line starting with `>>` under anything you want changed. When the verbiage is settled it goes back into the slides.",
 "",
-f"**{len(d['order'])} slides.** Artifact: https://claude.ai/artifact/2LkUiqh4HdXATQUhNBCy9J",
+f"**{len(d['order'])} slides.** Source: `course/deck-v2/project/` · Artifact: https://claude.ai/artifact/2LkUiqh4HdXATQUhNBCy9J",
 "","---",""]
 for i,sid in enumerate(d["order"],1):
-    p=SP=pathlib.Path("project/slides/%s.html"%sid)
+    p=ROOT / "project" / "slides" / ("%s.html" % sid)
     s=S(); s.feed(p.read_text())
     lines.append(f"## {i}. `{sid}`"); lines.append("")
     body=[x for x in s.out]
@@ -65,5 +78,5 @@ for i,sid in enumerate(d["order"],1):
     lines.append("")
     lines.append("**Speaker notes.** "+(s.aside or "_none_"))
     lines.append(""); lines.append("---"); lines.append("")
-pathlib.Path("/Users/thechrisoneil/software/agentic-loop/course/deck-v2.md").write_text("\n".join(lines)+"\n")
-print("wrote deck-v2.md")
+OUT.write_text("\n".join(lines)+"\n")
+print("wrote %s (%d slides)" % (OUT, len(d["order"])))

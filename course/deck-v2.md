@@ -2,7 +2,7 @@
 
 Every word that appears on a slide, plus the speaker notes, in deck order. Edit this file directly, or leave a line starting with `>>` under anything you want changed. When the verbiage is settled it goes back into the slides.
 
-**22 slides.** Artifact: https://claude.ai/artifact/2LkUiqh4HdXATQUhNBCy9J
+**22 slides.** Source: `course/deck-v2/project/` · Artifact: https://claude.ai/artifact/2LkUiqh4HdXATQUhNBCy9J
 
 ---
 
