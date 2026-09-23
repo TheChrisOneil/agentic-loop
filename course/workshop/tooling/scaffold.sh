@@ -42,6 +42,22 @@ if [ -e "$OUT" ] && [ "$FORCE" -eq 0 ]; then
   exit 1
 fi
 
+# The diagram is written into the loop, so a design the renderer refuses cannot be built.
+# Say what to do about it, because the way back runs through acceptance again.
+if ! "$HERE/render.sh" "$DESIGN" >/dev/null 2>"$ROOT/.render.err"; then
+  echo "REFUSED: this design cannot be drawn, so nothing is built from it." >&2
+  sed 's/^/         /' "$ROOT/.render.err" >&2; rm -f "$ROOT/.render.err"
+  echo >&2
+  echo "         The way back, in order:" >&2
+  echo "           1. change the design   make revise NAME=<job> ASK=\"...\"   (or edit it)" >&2
+  echo "           2. check it            make check DESIGN=$DESIGN" >&2
+  echo "           3. accept it again     make accept DESIGN=$DESIGN BY=\"Name, Role\"" >&2
+  echo "              — a changed design is a new design, and the old acceptance does not cover it" >&2
+  echo "           4. build it            make scaffold DESIGN=$DESIGN NAME=<folder>" >&2
+  exit 1
+fi
+rm -f "$ROOT/.render.err"
+
 PLAN=$(awk -f "$HERE/lib/parse.awk" -f "$HERE/lib/emit-plan.awk" "$DESIGN")
 m() { printf '%s\n' "$PLAN" | awk -F'\t' -v k="$1" '$1=="meta" && $2==k {print $3}'; }
 USE_CASE=$(m use_case); APPROVER=$(m approver); UNIT_DEF=$(m unit)

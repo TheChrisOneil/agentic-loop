@@ -52,6 +52,10 @@ sequenceDiagram
         L->>L: 7 gate-amount — Refuse when the recomputed amount disagrees with the request
     end
     L->>L: 8 prove — Write the order, the history, the recomputation and the dec…
+    L->>H: 9 deliver — Write a release proposal assigned to the named approver
+    L-)G: delivered
+    Note over H: nothing is approved here. A named person approves it, or does not.
+    H-->>L: approved, or returned with a reason
     alt proof checksum differs from the checksum recorded when it was written
         L->>H: REFUSE — Stop the release and have the refunds owner establish who edited the proof and when
         L-)G: refused
@@ -59,10 +63,6 @@ sequenceDiagram
     else the gate admits it
         L->>L: proceed
     end
-    L->>H: 9 deliver — Write a release proposal assigned to the named approver
-    L-)G: delivered
-    Note over H: nothing is approved here. A named person approves it, or does not.
-    H-->>L: approved, or returned with a reason
 ```
 
 ## The KPIs it is governed by

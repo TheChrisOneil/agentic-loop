@@ -53,6 +53,10 @@ sequenceDiagram
         L->>L: 7 gate-post — Refuse an unusable call, missing evidence, or an unverified…
     end
     L->>L: 8 prove — Write the arithmetic, the commands and the judgment, then c…
+    L->>H: 9 deliver — Re-check the checksum and write a proposal for the named ap…
+    L-)G: delivered
+    Note over H: nothing is approved here. A named person approves it, or does not.
+    H-->>L: approved, or returned with a reason
     alt proof checksum differs from the checksum recorded when it was written
         L->>H: REFUSE — Stop delivery and have the loop owner establish who edited the proof and when
         L-)G: refused
@@ -60,10 +64,6 @@ sequenceDiagram
     else the gate admits it
         L->>L: proceed
     end
-    L->>H: 9 deliver — Re-check the checksum and write a proposal for the named ap…
-    L-)G: delivered
-    Note over H: nothing is approved here. A named person approves it, or does not.
-    H-->>L: approved, or returned with a reason
 ```
 
 ## The KPIs it is governed by

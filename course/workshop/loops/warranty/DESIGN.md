@@ -62,6 +62,10 @@ sequenceDiagram
         L->>L: 8 consistency_gate — Refuse when the model conclusion contradicts any recomputed…
     end
     L->>L: 9 write_proof — Write the decision record with all inputs, recomputed figur…
+    L->>H: 10 route_proposal — Deliver the proposal to the assigned technician, or to the …
+    L-)G: delivered
+    Note over H: nothing is approved here. A named person approves it, or does not.
+    H-->>L: approved, or returned with a reason
     alt Refuse to auto-route when claim value is 2000 USD or more such a claim …
         L->>H: REFUSE — Regional Manager reviews the proposal and the evidence record and issues pay or deny within 2 b…
         L-)G: refused
@@ -69,10 +73,6 @@ sequenceDiagram
     else the gate admits it
         L->>L: proceed
     end
-    L->>H: 10 route_proposal — Deliver the proposal to the assigned technician, or to the …
-    L-)G: delivered
-    Note over H: nothing is approved here. A named person approves it, or does not.
-    H-->>L: approved, or returned with a reason
 ```
 
 ## The KPIs it is governed by

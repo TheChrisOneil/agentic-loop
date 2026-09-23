@@ -35,8 +35,11 @@ END {
       rendered_as_gate=0
       for (j=1;j<=g;j++) if (GAFT[j]==SID[i]) { gate_block(j, label); rendered_as_gate=1 }
       if (!rendered_as_gate) print "    L->>L: " label " [gate condition not stated]"
+      continue
     }
-    else if (t=="thinking" && a=="model") {
+
+    # the step's own work
+    if (t=="thinking" && a=="model") {
       print "    L->>M: " label
       print "    M-->>L: a call, with the evidence it cites"
     }
@@ -45,17 +48,18 @@ END {
       print "    X-->>L: a call, with the evidence they cite"
     }
     else if (i==s) {
-      for (j=1;j<=g;j++) if (GAFT[j]==SID[i]) gate_block(j, "")
       print "    L->>H: " label
       print "    L-)G: delivered"
       print "    Note over H: nothing is approved here. A named person approves it, or does not."
       print "    H-->>L: approved, or returned with a reason"
     }
-    else {
-      print "    L->>L: " label
-      for (j=1;j<=g;j++) if (GAFT[j]==SID[i]) gate_block(j, "")
-    }
+    else print "    L->>L: " label
+
+    # then any gate the design attaches to it — whatever kind of step it is. A design may
+    # guard a judgment, a delivery or a selection, and the picture has to show it.
+    for (j=1;j<=g;j++) if (GAFT[j]==SID[i]) gate_block(j, "")
   }
+
   # A control that was silently left out of the picture is the failure this course is about.
   miss=""
   for (j=1;j<=g;j++) if (!(j in RENDERED)) miss=miss " " j

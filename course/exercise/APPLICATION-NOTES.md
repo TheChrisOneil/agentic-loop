@@ -271,6 +271,20 @@ make scaffold DESIGN=jobs/team-N/proposed.design NAME=team-N
 
 It refuses to build a design nobody accepted. That is C1 doing its job.
 
+**If it refuses for another reason** — a gate that names no step, a design it cannot draw — the
+message names the way back, and it runs through acceptance again:
+
+```bash
+make revise NAME=team-N ASK="..."                 # 1. change the design
+make check  DESIGN=jobs/team-N/proposed.design    # 2. check it
+make accept DESIGN=jobs/team-N/proposed.design BY="Your Name, Your Role"   # 3. accept it again
+make scaffold DESIGN=jobs/team-N/proposed.design NAME=team-N               # 4. build it
+```
+
+Step 3 is not optional. **A changed design is a new design, and the old acceptance does not
+cover it** — `make status` will say `CHANGED SINCE ACCEPTANCE` until you sign for the new one.
+That is the control working, not an obstacle.
+
 ### C3 · Run your loop
 
 ```bash
