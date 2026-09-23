@@ -191,7 +191,7 @@ TXT
         # scaffolded days ago proves those loops still work, not that the chain still works.
         # The acceptance goes in a scratch register so a rehearsal does not append to the real
         # one; the register's location is configuration, the gate is the control.
-        CHAIN_REG=$(mktemp -t acceptances)
+        CHAIN_REG=$(mktemp "${TMPDIR:-/tmp}/acceptances.XXXXXX")
         rm -rf workshop/loops/_check
         if printf 'I accept\n' | ACCEPT_REGISTER="$CHAIN_REG" \
              make -C workshop accept DESIGN=jobs/_check/proposed.design BY="Rehearsal, Check" >/dev/null 2>&1; then

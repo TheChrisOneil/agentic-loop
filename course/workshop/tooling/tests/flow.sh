@@ -6,8 +6,8 @@ T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
 W="$(cd "$T/.." && pwd)"                # the workshop
 export PATH="$T/tests/fake-bin-good:$PATH"
 # Its own acceptance register: the real one is append-only and must not carry test rows.
-export ACCEPT_REGISTER="$(mktemp -t acceptances)"
-export USAGE_LEDGER="$(mktemp -t usage)"
+export ACCEPT_REGISTER="$(mktemp "${TMPDIR:-/tmp}/acceptances.XXXXXX")"
+export USAGE_LEDGER="$(mktemp "${TMPDIR:-/tmp}/usage.XXXXXX")"
 JOB=_flowtest
 rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"
 
