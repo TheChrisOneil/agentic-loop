@@ -1,0 +1,17 @@
+<section id="worked-budget" style="background:#FCFCFA; color:#1A1A1A; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:24px">
+  <p style="font-size:26px; letter-spacing:3px; text-transform:uppercase; color:#6B6B6B">After the demo &#183; real-world unit economics</p>
+  <h2 style="font-size:52px; font-weight:600; line-height:1.15; width:1660px">Live operating metrics from this session&#8217;s system</h2>
+  <table style="font-family:'IBM Plex Sans', Arial, sans-serif; font-size:25px; border:1px solid #D6D6D2; padding:11px 15px">
+    <tr style="background:#F0F0EC"><th style="width:30%; text-align:left; font-weight:600">Operational layer</th><th style="width:16%; text-align:left; font-weight:600">Category</th><th style="width:30%; text-align:left; font-weight:600">Metric</th><th style="width:24%; text-align:left; font-weight:600">Source</th></tr>
+    <tr><td>Design generation per workflow</td><td>NRE</td><td><b>$0.2557</b> average</td><td>29 metered runs</td></tr>
+    <tr><td>Total designs generated</td><td>NRE</td><td><b>34</b> &#8212; 29 metered, 5 stubs</td><td>System audit ledger</td></tr>
+    <tr><td>Batch entering the nightly run</td><td>Volume</td><td><b>9</b> transactions</td><td>Operational event log</td></tr>
+    <tr><td>Filtered by rules</td><td>Deterministic</td><td><b>3</b> refused instantly, $0.00</td><td>Business guardrails</td></tr>
+    <tr><td>Resolved by math</td><td>Deterministic</td><td><b>2</b> completed instantly, $0.00</td><td>Arithmetic checks</td></tr>
+    <tr><td>Requiring AI judgment</td><td>OpEx, AI</td><td><b>4</b> routed to reasoning</td><td>4 inference calls</td></tr>
+    <tr><td>Inference spend for judgment</td><td>OpEx, AI</td><td><i>[direct API usage ledger]</i></td><td>Token meter</td></tr>
+    <tr><td>Oversight time per unit</td><td>OpEx, human</td><td><i>[target: &#60; 45 seconds]</i></td><td>Time tracking</td></tr>
+  </table>
+  <p style="font-size:29px; line-height:1.4; width:1660px"><b>Of 9 incoming transactions, 5 were fully resolved by free deterministic code before calling AI.</b> Intelligence was deployed strictly where it added value.</p>
+  <aside>Here is live financial data from the actual software powering this workshop. Out of nine incoming work items, our deterministic rules immediately filtered three invalid requests and fully resolved two through pure arithmetic — costing zero tokens. Only four items required agentic judgment. That ratio represents world-class system design. By insulating your AI models behind smart deterministic filters, you preserve budget to run the fastest, smartest frontier models on complex judgments while maintaining absolute cost efficiency across the enterprise. The two bracketed rows are deliberately blank: the inference spend and the oversight minutes are numbers you meter in your own environment, and a figure invented here would sit in the same column as one that was measured. (3 min)</aside>
+</section>

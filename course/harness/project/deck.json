@@ -1,0 +1,16 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-09-23T16:00:00Z" },
+  "title": "The Agentic Harness",
+  "order": ["cover","the-ask","tvr","tco","determinism","method","harness-artifacts","worked-budget","assets","outtakes","nre","engineer-roi","opex","unit-economics","ops-plan","traceability","kpis","cadence"],
+  "sections": {
+    "s1": { "description": "The harness as corporate IP, the executive mandate, and the two axes: TVR and TCO", "start": "cover" },
+    "s2": { "description": "The method, and the six artifacts we build and run — the pivot into the demo", "start": "method" },
+    "s3": { "description": "After the demo: what the system cost, and the assets that keep watching it", "start": "worked-budget" },
+    "s4": { "description": "Outtakes — held in reserve for questions", "start": "outtakes" }
+  },
+  "faces": {
+    "ibm-plex-sans": { "family": "IBM Plex Sans", "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" }
+  },
+  "designSystems": []
+}
