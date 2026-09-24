@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Workshop Compiler Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F5F7FA; --panel:#FFFFFF; --ink:#16202B; --muted:#55626F; --rule:#D6DDE5;
+  --accent:#1D5CA3; --accent-soft:#E3ECF7; --model:#A8316F; --model-soft:#F6E4EE;
+  --gate:#8F5B00; --gate-soft:#F7EDD9; --ok:#1E7A4C; --ok-soft:#DFF1E7;
+  --code-bg:#EEF1F5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F151C; --panel:#161E27; --ink:#E4EAF0; --muted:#9AA7B4; --rule:#2A3542;
+    --accent:#7FB0EC; --accent-soft:#1B2B40; --model:#EE8BBE; --model-soft:#3A1D2C;
+    --gate:#E6B35A; --gate-soft:#35290F; --ok:#6FD3A0; --ok-soft:#14301F; --code-bg:#1B2530;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F151C; --panel:#161E27; --ink:#E4EAF0; --muted:#9AA7B4; --rule:#2A3542;
+  --accent:#7FB0EC; --accent-soft:#1B2B40; --model:#EE8BBE; --model-soft:#3A1D2C;
+  --gate:#E6B35A; --gate-soft:#35290F; --ok:#6FD3A0; --ok-soft:#14301F; --code-bg:#1B2530;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:32px 64px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:24px;padding-inline:16px}nav.toc{position:static!important}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:13px}
+nav.toc .lbl{font:600 11px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:8px;color:var(--ink);text-decoration:none;padding:5px 8px;border-radius:4px}
+nav.toc a span{font-family:var(--mono);color:var(--muted);min-width:22px}
+nav.toc a:hover,nav.toc a:focus-visible{background:var(--accent-soft);outline:none}
+main{min-width:0}
+header.head{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:28px}
+.eyebrow{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font:600 clamp(28px,4.2vw,40px)/1.1 var(--cond);margin:10px 0 12px;text-wrap:balance;letter-spacing:-.01em}
+h2{font:600 22px/1.25 var(--cond);margin:0 0 6px;text-wrap:balance}
+h3{font:600 15px/1.3 var(--sans);margin:22px 0 8px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:13px var(--mono);color:var(--muted)}
+.hdr{display:grid;gap:10px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;margin-bottom:36px}
+.hdr p{margin:0;max-width:78ch}
+.hdr b{font:600 11px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:inline-block;min-width:74px}
+section{margin-bottom:48px;scroll-margin-top:24px}
+section > .sub{color:var(--muted);margin:0 0 16px;max-width:75ch}
+p{max-width:75ch}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11px/1.2 var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.fig{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px;overflow-x:auto;margin:12px 0}
+.fig pre.mermaid{margin:0;background:transparent;display:flex;justify-content:center}
+.cap{font:12px/1.5 var(--mono);color:var(--muted);margin:6px 0 0}
+/* 4+1 map */
+.plus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;gap:10px;max-width:640px;margin:8px 0 12px}
+.plus a{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--rule);border-radius:6px;background:var(--panel);color:var(--ink);text-decoration:none}
+.plus a:hover,.plus a:focus-visible{border-color:var(--accent);outline:none}
+.plus a b{font:600 14px/1.2 var(--cond)}
+.plus a small{color:var(--muted);font-size:12px;line-height:1.4}
+.plus .c{grid-column:2;grid-row:2;background:var(--accent-soft);border-color:var(--accent)}
+.plus .n{grid-column:1;grid-row:1}.plus .e{grid-column:3;grid-row:1}
+.plus .s{grid-column:1;grid-row:3}.plus .w{grid-column:3;grid-row:3}
+@media (max-width:520px){.plus{grid-template-columns:minmax(0,1fr)}.plus a{grid-column:1!important;grid-row:auto!important}}
+.chip{display:inline-block;font:500 11px/1 var(--mono);padding:3px 7px;border-radius:999px;vertical-align:1px}
+.chip.model{background:var(--model-soft);color:var(--model)}
+.chip.code{background:var(--accent-soft);color:var(--accent)}
+.chip.gate{background:var(--gate-soft);color:var(--gate)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:13px var(--mono);margin:8px 0 4px}
+.pipe .arrow{color:var(--muted)}
+.pipe .st{padding:4px 9px;border:1px solid var(--rule);border-radius:4px;background:var(--panel)}
+.find{border-left:3px solid var(--gate);background:var(--panel);padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0}
+.find.ok{border-left-color:var(--ok)}
+.find p{margin:4px 0}
+ol.refs{padding-left:0;list-style:none;font-size:14px;display:grid;gap:6px}
+ol.refs li{display:grid;grid-template-columns:36px 1fr;max-width:80ch}
+ol.refs li span{font-family:var(--mono);color:var(--muted)}
+a{color:var(--accent)}
+.inf{font-style:italic;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+<!-- Standalone copy: Mermaid is loaded here; the published artifact renders it natively. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, securityLevel: "strict",
+    theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default" });
+</script>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">Contents</div>
+  <ol>
+    <li><a href="#desc"><span>1</span>Description</a></li>
+    <li><a href="#logical"><span>2</span>Logical view</a></li>
+    <li><a href="#process"><span>3</span>Process view</a></li>
+    <li><a href="#development"><span>4</span>Development view</a></li>
+    <li><a href="#physical"><span>5</span>Physical view</a></li>
+    <li><a href="#scenario"><span>+1</span>Scenario view</a></li>
+    <li><a href="#quality"><span>6</span>Quality attributes</a></li>
+    <li><a href="#findings"><span>7</span>Findings</a></li>
+    <li><a href="#refs"><span>R</span>References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="head">
+  <div class="eyebrow">Architecture specification · 4+1 view model [1]</div>
+  <h1>Workshop Compiler: use case to design to stub loop</h1>
+  <div class="meta">
+    <span>repo thechrisoneil/agentic-loop</span>
+    <span>path course/workshop/</span>
+    <span>branch claude/sharp-darwin-7innrk @ 08718be</span>
+    <span>2026-09-24</span>
+  </div>
+</header>
+
+<div class="hdr">
+  <p><b>Purpose</b> Specify the workshop tooling that compiles a process description into a validated design and, on named acceptance, scaffolds a stub loop.</p>
+  <p><b>EX</b> The tooling is a five-state job pipeline with one model call (<code>generate.sh</code>). Validation, rendering, acceptance and scaffolding are deterministic bash and awk. <code>make test</code> passes 11 of 11 after the <code>mktemp</code> fix in commit <code>cb64ed8</code>.</p>
+</div>
+
+<div class="plus" role="list" aria-label="4+1 views">
+  <a class="n" href="#logical" role="listitem"><b>Logical</b><small>Classes and patterns; end user functionality</small></a>
+  <a class="e" href="#development" role="listitem"><b>Development</b><small>Packages and files; the programmer's view</small></a>
+  <a class="c" href="#scenario" role="listitem"><b>+1 Scenarios</b><small>Use case to running stub loop</small></a>
+  <a class="s" href="#process" role="listitem"><b>Process</b><small>States, control flow, repair loop</small></a>
+  <a class="w" href="#physical" role="listitem"><b>Physical</b><small>Workstation, CLI, model endpoint</small></a>
+</div>
+
+<!-- 1 -->
+<section id="desc">
+  <h2>1. Description</h2>
+  <p class="sub">The tooling behaves as a compiler. The source is prose, the intermediate representation is a <code>.design</code> file, and the target is a runnable loop.</p>
+  <div class="pipe" aria-label="Compiler stages">
+    <span class="st">use-case.txt</span><span class="arrow">→</span>
+    <span class="st">screen.awk <span class="chip code">rule</span></span><span class="arrow">→</span>
+    <span class="st">generate <span class="chip model">model</span></span><span class="arrow">→</span>
+    <span class="st">validate V1–V22 <span class="chip gate">gate</span></span><span class="arrow">→</span>
+    <span class="st">brief + render</span><span class="arrow">→</span>
+    <span class="st">accept sha256 <span class="chip gate">gate</span></span><span class="arrow">→</span>
+    <span class="st">scaffold</span><span class="arrow">→</span>
+    <span class="st">loops/&lt;slug&gt;/</span>
+  </div>
+  <p class="cap">Every job state transition is appended to jobs/&lt;slug&gt;/job.tsv (start.sh:8-9).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Artifact</th><th>Role</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td><code>jobs/&lt;slug&gt;/use-case.txt</code></td><td>Source; the process in the owner's words</td><td class="mono">generate.sh:45-59</td></tr>
+      <tr><td><code>method/GENERATE.md</code>, <code>schema/DESIGN-FORMAT.md</code></td><td>Written method and target grammar the model fills</td><td class="mono">generate.sh:94-97</td></tr>
+      <tr><td><code>jobs/&lt;slug&gt;/proposed.design</code></td><td>Intermediate representation: <code>@meta @assumptions @unit @steps @gates …</code></td><td class="mono">DESIGN-FORMAT.md</td></tr>
+      <tr><td><code>memory/acceptances.tsv</code></td><td>Append only, hash chained approval register</td><td class="mono">accept.sh:1-16</td></tr>
+      <tr><td><code>memory/usage.tsv</code></td><td>Cost ledger; <code>nre</code> for design, <code>run</code> per unit</td><td class="mono">log-cost.sh:7-14</td></tr>
+      <tr><td><code>loops/&lt;slug&gt;/</code></td><td>Target; a stub loop with <code>TODO:</code> steps that ticks immediately</td><td class="mono">scaffold.sh:1-10</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 2 -->
+<section id="logical">
+  <h2>2. Logical view</h2>
+  <p class="sub">Class diagram per UML 2.5.1 [5]. <code>validate.sh</code> and <code>render.sh</code> read the design through one parser, <code>parse.awk</code>, so the check and the picture cannot disagree.</p>
+  <div class="fig"><pre class="mermaid">
+classDiagram
+  class Workshop { &lt;&lt;Facade&gt;&gt; start.sh; +resume() +list() }
+  class Job { slug; state; owner; job.tsv }
+  class Screen { &lt;&lt;rule&gt;&gt; TOO_LONG | TOO_SHORT | INJECTION_SUSPECT | OK }
+  class Generator { +generate(useCase) design; REPAIRS=2 }
+  class DesignSource { &lt;&lt;interface&gt;&gt; }
+  class ClaudeSource { claude -p --output-format json }
+  class RecordedSource { --recorded; 0 tokens }
+  class Design { @meta @unit @steps @gates @evidence @kpis }
+  class Parser { parse.awk }
+  class Validator { V1..V22; ERROR blocks, WARN does not }
+  class Renderer { seq | flow; check-gates.awk }
+  class Brief { BRIEF.md + diagrams }
+  class Reviser { REVISION_CAP=3; keeps proposed.vN }
+  class Acceptance { sha256 of design; chain; typed phrase }
+  class Scaffolder { &lt;&lt;Builder&gt;&gt; emit-plan.awk }
+  class Loop { loop.sh; steps; config.sh; Makefile }
+  class CostLedger { nre | run; usage.tsv }
+  Workshop --> Job
+  Workshop --> Generator
+  Workshop --> Reviser
+  Workshop --> Acceptance
+  Workshop --> Scaffolder
+  Generator --> Screen
+  Generator --> DesignSource
+  DesignSource &lt;|.. ClaudeSource
+  DesignSource &lt;|.. RecordedSource
+  Generator --> Validator : repair loop
+  Generator --> Brief
+  Generator --> CostLedger
+  Reviser --> Generator : notes
+  Validator --> Parser
+  Renderer --> Parser
+  Renderer --> Validator
+  Brief --> Renderer
+  Scaffolder --> Validator
+  Scaffolder --> Acceptance
+  Scaffolder --> Renderer
+  Scaffolder --> Parser
+  Scaffolder ..> Loop : creates
+  Generator ..> Design : creates
+  </pre></div>
+  <h3>Pattern mapping</h3>
+  <p class="inf">Inference: the source names no patterns. The mapping below is analysis.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Mechanism</th><th>Pattern</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><code>start.sh</code> single entry point over the tooling</td><td>Facade</td><td>[2]</td></tr>
+      <tr><td><code>jobs/&lt;slug&gt;/state</code> and <code>set_state</code></td><td>State</td><td>[2]</td></tr>
+      <tr><td>Live CLI or <code>--recorded</code> design source</td><td>Strategy</td><td>[2]</td></tr>
+      <tr><td><code>emit-plan.awk</code> flattens the design; <code>scaffold.sh</code> assembles parts</td><td>Builder</td><td>[2]</td></tr>
+      <tr><td>validate → render → brief over files</td><td>Pipes and Filters</td><td>[3]</td></tr>
+      <tr><td><code>acceptances.tsv</code> row hash includes prior row hash</td><td>Hash chained audit log</td><td>[4]</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 3 -->
+<section id="process">
+  <h2>3. Process view</h2>
+  <p class="sub">The job lifecycle is a state machine persisted as one file per job. A job resumes where it stopped.</p>
+  <div class="fig"><pre class="mermaid">
+stateDiagram-v2
+  [*] --> intake: make start
+  intake --> intake: screen or generate refused
+  intake --> designed: validated design + brief
+  designed --> discussing: d, revise (max 3)
+  discussing --> designed: re-validated
+  designed --> designed: s, stop
+  designed --> accepted: a, typed phrase + name
+  accepted --> accepted: scaffold refused
+  accepted --> built: scaffold ok, make tick
+  built --> [*]
+  </pre></div>
+  <p class="cap">Evidence: set_state calls in start.sh, lines 51-190.</p>
+  <h3>Generate activity with bounded repair</h3>
+  <div class="fig"><pre class="mermaid">
+flowchart TD
+  U[use-case.txt] --> S{screen.awk}
+  S -->|TOO_LONG, TOO_SHORT, INJECTION| R1([REFUSED + next human action])
+  S -->|OK| P[build_prompt: GENERATE.md + DATA + author, date]
+  P --> M[[claude -p, JSON]]
+  M --> C[log-cost.sh nre]
+  C --> X[extract from first @meta]
+  X --> V{validate.sh}
+  V -->|pass| B[brief.sh: BRIEF.md, sequence.mmd, flow.mmd, svg]
+  V -->|fail, attempts left| F[findings.txt fed back]
+  F --> P
+  V -->|fail, 3 attempts spent| R2([REFUSED; draft kept])
+  </pre></div>
+  <p class="cap">REPAIRS=2 gives at most three model attempts (generate.sh:117-160).</p>
+</section>
+
+<!-- 4 -->
+<section id="development">
+  <h2>4. Development view</h2>
+  <p class="sub">Tooling, records and generated output live in separate trees. <code>scaffold.sh:11</code>: the tooling and what it builds stay apart.</p>
+  <div class="fig"><pre class="mermaid">
+flowchart LR
+  MK[Makefile: sole user interface]
+  subgraph tooling
+    T1[start.sh] --- T2[generate.sh] --- T3[revise.sh]
+    T4[validate.sh] --- T5[render.sh] --- T6[brief.sh]
+    T7[accept.sh] --- T8[scaffold.sh] --- T9[log-cost.sh, cost-estimate.sh]
+    subgraph lib
+      L1[parse.awk] --- L2[validate.awk] --- L3[render-seq, render-flow]
+      L4[check-gates.awk] --- L5[emit-plan.awk] --- L6[screen.awk] --- L7[json.sh]
+    end
+    subgraph schema
+      S1[DESIGN-FORMAT.md] --- S2[design.template]
+    end
+    M1[method/GENERATE.md]
+    subgraph tests
+      TT[flow.sh, repair-path.sh, repair-budget.sh, fake-bin claude stubs]
+    end
+  end
+  EX[examples: designs + 5 use cases]
+  JB[jobs: per engagement records]
+  LP[loops: generated output]
+  MEM[memory: acceptances.tsv, usage.tsv]
+  MK --> tooling
+  tooling --> JB
+  tooling --> LP
+  tooling --> MEM
+  </pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Package</th><th>Contents</th><th>Lines</th></tr></thead>
+    <tbody>
+      <tr><td><code>tooling/scaffold.sh</code></td><td>Code generator; heredoc templates for config, lib, steps, loop, Makefile, DESIGN.md, ACCEPTANCE.md</td><td class="num">544</td></tr>
+      <tr><td><code>tooling/start.sh</code></td><td>Job state machine and interactive discussion</td><td class="num">246</td></tr>
+      <tr><td><code>tooling/generate.sh</code></td><td>Screen, prompt assembly, model call, repair loop</td><td class="num">208</td></tr>
+      <tr><td><code>tooling/accept.sh</code></td><td>Accept, status, revoke, note, list, verify</td><td class="num">166</td></tr>
+      <tr><td><code>tooling/revise.sh</code></td><td>Versioned revision with diff and cost</td><td class="num">62</td></tr>
+      <tr><td><code>tooling/validate.sh</code></td><td>Rule list and driver for <code>validate.awk</code></td><td class="num">47</td></tr>
+      <tr><td><code>tooling/render.sh</code></td><td>Sequence or flow view; validates first</td><td class="num">46</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Line counts: wc -l at 08718be.</p>
+</section>
+
+<!-- 5 -->
+<section id="physical">
+  <h2>5. Physical view</h2>
+  <p class="sub">A single workstation runs everything. The model endpoint is optional; <code>--recorded</code> designs and stub judges make the chain run offline.</p>
+  <div class="fig"><pre class="mermaid">
+flowchart LR
+  subgraph WS[device: macOS or Linux workstation]
+    SH[exec env: bash, awk, shasum]
+    FS[(artifacts: jobs, loops, memory)]
+    MMDC[optional: mmdc on Node, renders SVG]
+    CLI[optional: claude CLI]
+  end
+  subgraph AN[node: Anthropic API]
+    MOD[GENERATE_MODEL]
+  end
+  BR[alternate path: browser assistant, pasted]
+  SH --- FS
+  SH --> MMDC
+  SH --> CLI
+  CLI -->|HTTPS: method + use case| MOD
+  BR -.->|cost-estimate.sh, source=estimated| FS
+  </pre></div>
+  <p class="cap">The browser path records estimated tokens and never a dollar figure (cost-estimate.sh:6-9).</p>
+</section>
+
+<!-- +1 -->
+<section id="scenario">
+  <h2>+1. Scenario view: use case to running stub loop</h2>
+  <p class="sub">This scenario exercises all four views. <code>tests/flow.sh</code> automates it with a stub model.</p>
+  <div class="fig"><pre class="mermaid">
+sequenceDiagram
+  actor O as Process owner
+  participant W as start.sh
+  participant G as generate.sh
+  participant M as Model
+  participant V as validate.sh
+  participant B as brief.sh
+  participant A as accept.sh
+  participant S as scaffold.sh
+  participant L as loops/slug
+  O->>W: make start (slug, owner, use case)
+  W->>G: --name --use-case
+  G->>G: screen.awk
+  G->>M: GENERATE.md + use case
+  M-->>G: design text
+  G->>V: validate
+  V-->>G: pass, or findings and retry (max 2)
+  G->>B: BRIEF.md + diagrams
+  W-->>O: assumptions first, then d / a / s
+  O->>W: d, cut fan-out
+  W->>G: revise with notes (keeps v1)
+  O->>W: a, types I accept
+  W->>A: sha256 of design, chained row
+  W->>S: scaffold
+  S->>V: must pass
+  S->>A: status: sha must match
+  S->>S: render must not drop a gate
+  S->>L: config, lib, steps (TODO), loop.sh, Makefile, DESIGN.md
+  W->>L: make tick (placeholders run, U-003 refused)
+  </pre></div>
+  <h3>Scaffold gates, in order</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Condition</th><th>Refusal</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Design passes V1–V22</td><td>does not pass the validator</td><td class="mono">scaffold.sh:21-25</td></tr>
+      <tr><td class="num">2</td><td>Register holds an acceptance for this exact SHA-256</td><td>has not been accepted</td><td class="mono">scaffold.sh:28-38</td></tr>
+      <tr><td class="num">3</td><td>Every gate attaches to a real step</td><td>cannot be drawn</td><td class="mono">scaffold.sh:47-59</td></tr>
+    </tbody>
+  </table></div>
+  <p>Any edit after acceptance changes the hash and voids the acceptance: "a changed design is a new design" (<code>scaffold.sh:56</code>).</p>
+</section>
+
+<!-- 6 -->
+<section id="quality">
+  <h2>6. Quality attributes</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Attribute</th><th>Mechanism</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Determinism</td><td>One model call; all other stages are bash and awk</td><td class="mono">generate.sh:2</td></tr>
+      <tr><td>Integrity</td><td>Acceptance bound to content hash; chained rows</td><td class="mono">accept.sh --verify: chain intact, 20 rows</td></tr>
+      <tr><td>Accountability</td><td><code>approver</code> must be a person or role, never the machine</td><td class="mono">validate.sh V3</td></tr>
+      <tr><td>Injection resistance</td><td>Rule screen before the model; use case labeled DATA in the prompt</td><td class="mono">screen.awk; generate.sh:100</td></tr>
+      <tr><td>Cost visibility</td><td>NRE separated from per unit run cost; unknown recorded as unknown, never 0</td><td class="mono">log-cost.sh:7-21</td></tr>
+      <tr><td>Bounded argument</td><td><code>REVISION_CAP=3</code>, <code>REPAIRS=2</code></td><td class="mono">revise.sh:21-27</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 7 -->
+<section id="findings">
+  <h2>7. Findings</h2>
+  <div class="find ok">
+    <p><span class="chip ok">fixed</span> <b>GNU <code>mktemp</code> defect in tests.</b> <code>mktemp -t name</code> is BSD syntax. On GNU it returned an empty path, so <code>ACCEPT_REGISTER</code> and <code>USAGE_LEDGER</code> fell back to the real <code>memory/*.tsv</code>, and the tests appended rows to the audit register. <code>flow.sh</code> reported a false failure.</p>
+    <p>Fix: explicit <code>${TMPDIR:-/tmp}/name.XXXXXX</code> template, abort on empty path, <code>cat</code> fallback for <code>column</code>. Commits <code>cb64ed8</code> (workshop tests) and <code>08718be</code> (<code>course/check.sh</code>). Result: 11 PASS, 0 FAIL; <code>memory/</code> unchanged.</p>
+  </div>
+  <div class="find">
+    <p><span class="chip gate">HIPAA</span> <b>PHI egress in generation.</b> <span class="inf">Inference.</span> <code>examples/prior-auth.use-case.txt</code> describes a PHI workflow. <code>generate.sh</code> sends the use case text to the model endpoint. Real clinical descriptions require a BAA covered endpoint and de-identified wording. The same applies to <code>JUDGE_MODE=claude</code> in scaffolded loops.</p>
+  </div>
+  <div class="find">
+    <p><span class="chip code">scope</span> <b>Stub output.</b> The scaffold builds the loop's shape only. Step logic remains <code>TODO:</code> placeholders, listed by <code>make todo</code> inside the loop.</p>
+  </div>
+</section>
+
+<section id="refs">
+  <h2>References</h2>
+  <ol class="refs">
+    <li><span>[1]</span><div>P. B. Kruchten, "The 4+1 view model of architecture," <i>IEEE Software</i>, vol. 12, no. 6, pp. 42–50, Nov. 1995, doi: 10.1109/52.469759.</div></li>
+    <li><span>[2]</span><div>E. Gamma, R. Helm, R. Johnson, and J. Vlissides, <i>Design Patterns: Elements of Reusable Object-Oriented Software</i>. Reading, MA, USA: Addison-Wesley, 1994.</div></li>
+    <li><span>[3]</span><div>F. Buschmann, R. Meunier, H. Rohnert, P. Sommerlad, and M. Stal, <i>Pattern-Oriented Software Architecture, Vol. 1: A System of Patterns</i>. Chichester, U.K.: Wiley, 1996.</div></li>
+    <li><span>[4]</span><div>S. Haber and W. S. Stornetta, "How to time-stamp a digital document," <i>J. Cryptology</i>, vol. 3, no. 2, pp. 99–111, 1991.</div></li>
+    <li><span>[5]</span><div>Object Management Group, <i>Unified Modeling Language (UML), Version 2.5.1</i>, OMG Doc. formal/17-12-05, Dec. 2017.</div></li>
+  </ol>
+</section>
+</main>
+</div>
+</body>
+</html>
