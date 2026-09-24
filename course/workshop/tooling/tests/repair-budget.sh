@@ -4,7 +4,8 @@
 set -uo pipefail
 T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
 W="$(cd "$T/.." && pwd)"                # the workshop
-export USAGE_LEDGER="$(mktemp -t usage)"
+export USAGE_LEDGER="$(mktemp "${TMPDIR:-/tmp}/usage.XXXXXX")"
+[ -n "$USAGE_LEDGER" ] || { echo "FAIL: mktemp gave no usage file; refusing to touch the real one"; exit 1; }
 rm -rf "$W/jobs/_budgettest"
 OUT=$(PATH="$T/tests/fake-bin-always-bad:$PATH" GENERATE_MODEL=stub-model \
   "$T/generate.sh" --use-case "$T/tests/fixtures/use-case.txt" --name _budgettest --by "Test" 2>&1)
