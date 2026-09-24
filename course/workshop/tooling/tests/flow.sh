@@ -6,8 +6,12 @@ T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
 W="$(cd "$T/.." && pwd)"                # the workshop
 export PATH="$T/tests/fake-bin-good:$PATH"
 # Its own acceptance register: the real one is append-only and must not carry test rows.
-export ACCEPT_REGISTER="$(mktemp -t acceptances)"
-export USAGE_LEDGER="$(mktemp -t usage)"
+# An explicit XXXXXX template: GNU mktemp rejects "-t name", and an empty path would fall back
+# to the real register.
+export ACCEPT_REGISTER="$(mktemp "${TMPDIR:-/tmp}/acceptances.XXXXXX")"
+[ -n "$ACCEPT_REGISTER" ] || { echo "FAIL: mktemp gave no acceptances file; refusing to touch the real one"; exit 1; }
+export USAGE_LEDGER="$(mktemp "${TMPDIR:-/tmp}/usage.XXXXXX")"
+[ -n "$USAGE_LEDGER" ] || { echo "FAIL: mktemp gave no usage file; refusing to touch the real one"; exit 1; }
 JOB=_flowtest
 rm -rf "$W/jobs/$JOB" "$W/loops/$JOB"
 

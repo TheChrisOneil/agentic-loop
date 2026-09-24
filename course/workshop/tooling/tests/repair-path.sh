@@ -4,13 +4,14 @@
 set -uo pipefail
 T="$(cd "$(dirname "$0")/.." && pwd)"   # tooling
 W="$(cd "$T/.." && pwd)"                # the workshop
-export USAGE_LEDGER="$(mktemp -t usage)"
+export USAGE_LEDGER="$(mktemp "${TMPDIR:-/tmp}/usage.XXXXXX")"
+[ -n "$USAGE_LEDGER" ] || { echo "FAIL: mktemp gave no usage file; refusing to touch the real one"; exit 1; }
 rm -rf "$W/jobs/_repairtest"
 PATH="$T/tests/fake-bin:$PATH" GENERATE_MODEL=stub-model \
   "$T/generate.sh" --use-case "$T/tests/fixtures/use-case.txt" --name _repairtest --by "Test" >/dev/null 2>&1
 ST=$?
 echo "--- job ledger ---"
-column -t -s$'\t' "$W/jobs/_repairtest/job.tsv"
+column -t -s$'\t' "$W/jobs/_repairtest/job.tsv" 2>/dev/null || cat "$W/jobs/_repairtest/job.tsv"
 echo
 grep -q "repairing" "$W/jobs/_repairtest/job.tsv" \
   && echo "PASS: the findings were fed back and a second attempt was made" \
