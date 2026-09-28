@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Re-derive Gas City's formula validation rules from the installed gc.
+# Conformance-check the installed gc against the formulas v2 spec:
+#   https://docs.gascity.com/reference/specs/formula-spec-v2
 #
 # Builds a throwaway city in a temp dir — never registered, so no controller
 # and no patrol ever runs against it — drops one deliberately malformed
 # formula at a time, and records what the compiler says.
 #
-# The output of this script IS the rule list. Do not maintain the rule list
-# by hand; run this against whatever gc is installed and diff it.
+# The spec is the source of truth. This script is how you find out whether the
+# gc you actually have agrees with it. Diff the output across gc versions.
 set -u
 command -v gc >/dev/null || { echo "REFUSED: gc is not installed." >&2; exit 1; }
 CITY=$(mktemp -d); trap 'rm -rf "$CITY"' EXIT
@@ -32,14 +33,14 @@ description = "d"
 probe() {                       # $1 = case name, stdin = the steps section
   local name=$1 body
   body=$(cat)
-  { printf "$HDR" "$name" "$name"; printf '%s\n' "$body"; } > "$CITY/formulas/$name.formula.toml"
+  { printf "$HDR" "$name" "$name"; printf '%s\n' "$body"; } > "$CITY/formulas/$name.toml"
   printf '%-22s ' "$name"
   gc formula show "$name" --city "$CITY" 2>&1 \
     | grep -v '^warning: this city does not import' \
     | grep -E '^\s+- |^gc formula show: .*(cycle|failed)' \
     | sed 's/^ *- //' | tr '\n' '|' | sed 's/|$//'
   echo
-  rm -f "$CITY/formulas/$name.formula.toml"
+  rm -f "$CITY/formulas/$name.toml"
 }
 
 echo "gc version: $(gc --version 2>/dev/null | head -1)"
@@ -129,6 +130,36 @@ title = "A"
 context = "banana"
 member_access = "banana"
 on_item_failure = "banana"
+EOF
+
+probe vars-required-and-default <<'EOF'
+[vars.x]
+required = true
+default = "d"
+[[steps]]
+id = "a"
+title = "A"
+EOF
+
+probe reserved-var <<'EOF'
+[vars.convoy_id]
+description = "x"
+[[steps]]
+id = "a"
+title = "A"
+EOF
+
+probe check-plus-retry <<'EOF'
+[[steps]]
+id = "a"
+title = "A"
+[steps.check]
+max_attempts = 1
+[steps.check.check]
+mode = "exec"
+path = "x.sh"
+[steps.retry]
+max_attempts = 2
 EOF
 
 echo

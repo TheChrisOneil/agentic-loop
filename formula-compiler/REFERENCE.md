@@ -1,7 +1,15 @@
 # The Gas City formula surface
 
-What a formula can contain, established locally, for the purpose of writing a compiler
-that emits them.
+What a formula can contain, for the purpose of writing a compiler that emits them.
+
+**Primary source:** <https://docs.gascity.com/reference/specs/formula-spec-v2> — the formulas v2
+contract. Read it. This file is a working digest organized as a compile target, not a
+replacement for it.
+
+**Verification:** every rule marked **[v]** below was reproduced against the installed `gc` by
+`./probe.sh`, which builds a throwaway, never-registered city and feeds it one malformed
+formula at a time. Counts marked **[c]** are from 96 unique `*.formula.toml` files on this
+machine. Where the spec and this machine disagree, the spec wins and the difference is noted.
 
 ## What a formula is
 
@@ -10,240 +18,268 @@ that emits them.
 > A formula is a reusable TOML method for how multi-step work should be done (a bead is the
 > work itself).
 
-That sentence is the whole reason this is a good compile target. A design describes a method.
-A formula *is* a method. The unit of work is not in either of them — it arrives as a bead.
+That is why it is a good compile target. A design describes a method. A formula *is* a method.
+The unit of work arrives separately, as a bead.
 
-## How this was established, and what is missing
+## Start here — six things that bite a compiler author
 
-`gc formula --help` points at `docs/reference/specs/formula-spec-v2.md`. **That file is not on
-this machine** — the gc install is a single binary and ships no docs. Everything below comes
-from four local sources, and each claim says which:
+1. **Canonical filename is `formulas/<name>.toml`.** `<name>.formula.toml` is accepted but
+   **deprecated**, and the infix is not part of the name. Every file in the local corpus uses
+   the deprecated form. Emit `<name>.toml`. **[v]**
+2. **Opt in with `[requires] formula_compiler = ">=2.0.0"`.** `contract = "graph.v2"` is the
+   deprecated opt-in and warns in `gc doctor`. 78 of 96 local files still use it. **[c]**
+3. **Graph-only constructs force that opt-in.** `check`, `retry`, `drain`, `on_complete` and
+   authored reserved `gc.*` metadata all fail without it.
+4. **`check`, `retry` and `drain` are mutually exclusive on one step.** The full matrix is
+   below. This is the single most likely thing to get wrong when generating steps. **[v]**
+5. **A v2 graph grows a step.** The compiler appends `workflow-finalize`, depending on every
+   sink. One authored step compiles to two. **[v]**
+6. **`gc converge` accepts only v1 formulas and rejects v2.** If your compiler emits v2 — and
+   it must, to use gates — convergence loops are not available to its output.
 
-| Mark | Source |
-|---|---|
-| **probed** | `./probe.sh` — a throwaway city, one malformed formula at a time, against the installed gc |
-| **corpus** | 96 unique `*.formula.toml` files on disk (576 paths, deduplicated by content) |
-| **schema** | `gc formula show --json-schema` — the compiled-recipe shape |
-| **help** | `gc <cmd> --help` |
+## Top-level keys
 
-Anything not marked is not established. Get the upstream spec before shipping a compiler: the
-gaps below are gaps in *my* knowledge, not proof of absence.
+| Key | Type | Req | Notes |
+|---|---|---|---|
+| `formula` | string | **yes** | unique name |
+| `description` | string | no | prose; `{{var}}` substituted |
+| `type` | string | no | `workflow` (default), `expansion`, `aspect` |
+| `extends` | []string | no | parent formulas; circular chains fail |
+| `contract` | string | no | only `graph.v2`; **deprecated** |
+| `phase` | string | no | `liquid` or `vapor`; v1 compat, avoid |
+| `pour` | bool | no | monotonic through `extends` — an ancestor's `true` sticks |
+| `[requires]` | table | no | `formula_compiler` semver; **unknown keys fail** |
+| `[catalog]` | table | no | `name`, `description` — opts into catalog discovery |
+| `[vars]` | table | no | declarations |
+| `[[steps]]` | array | no | the work |
+| `[template]` | array | no | `type = "expansion"` only |
+| `[compose]` | table | no | `bond_points`, `hooks`, `expand`, `map`, `branch`, `gate`, `aspects` |
+| `[[advice]]` | array | no | before/after/around transformations |
+| `[[pointcuts]]` | array | no | `type = "aspect"` only |
 
-## The file
-
-```toml
-formula = "name"                 # corpus: in every file
-version = 1                      # corpus: 88 of 96
-description = """..."""          # corpus: in every file — prose for humans
-contract = "graph.v2"            # corpus: 78 of 96, always this value
-target_required = true           # corpus: 64
-extends = "other-formula"        # corpus: 49 — inheritance
-internal = true                  # corpus: 40 — hide from the catalog
-type = "expansion"               # corpus: 14, always this value
-phase = "vapor"                  # corpus: 1
-pour = <bool>                    # schema only
-root_only = <bool>               # schema; probed: a formula with no steps reports Root only: true
-
-[requires]
-formula_compiler = ">=2.0.0"     # corpus: 14 — the v2 opt-in. See "Two compilers" below
-
-[catalog]
-name = "name"                    # corpus: 24
-description = "one line"         # corpus: 24
-```
-
-**Not enforced (probed):** `formula` need not match the filename or `[catalog].name` — a file
-named `name-mismatch.formula.toml` declaring `formula = "WRONGNAME"` compiles and reports
-itself as WRONGNAME. An unknown top-level key is accepted silently.
+Unknown top-level keys are silently ignored — except unknown keys inside `[requires]`, which
+fail. **[v]** A typo'd top-level key is a no-op your compiler must not produce.
 
 ## `[vars]`
 
-```toml
-[vars.<name>]
-description = "what it is"       # corpus: on every var
-default = "value"                # corpus: 259 across all files
-required = true                  # corpus: 96
-type = "..."                     # schema only
-pattern = "..."                  # schema only — regex
-enum = ["a", "b"]                # schema only
-```
+Two forms: `name = "default"` shorthand, or a table.
 
-Substituted into step text as `{{name}}`. `gc formula show --var k=v` previews resolution;
-rig-scoped `formula_vars` in `city.toml` supply defaults per rig (**help**).
+| Key | Notes |
+|---|---|
+| `description` | shown by `gc formula show` |
+| `default` | empty string is valid |
+| `required` | **cannot be combined with `default`** — `vars.x: cannot have both required:true and default` **[v]** |
+| `enum` | []string, enforced at instantiation |
+| `pattern` | regex, enforced at instantiation |
+| `type` | `string`/`int`/`bool` — **parsed but never enforced** |
 
-**Not enforced (probed):** `{{undeclared}}` in a step description compiles clean and stays
-literal. A required var with no value is listed, not refused, at `show` time.
+**Reserved names: `convoy_id` and `bead_id` cannot be declared** — `vars.convoy_id: formulas v2
+reserved variable cannot be declared` **[v]**, and callers cannot supply them either.
+`{{bead_id}}` is gone in v2; use `{{convoy_id}}`. `{{issue}}` is a deprecated alias that warns
+at cook and sling.
+
+`{{key}}` substitutes into `description`, `title`, `notes`, `assignee` and metadata *values*.
 
 ## `[[steps]]`
 
-```toml
-[[steps]]
-id = "load-inputs"               # REQUIRED (probed)
-title = "Load and validate"      # REQUIRED unless using expand (probed)
-description = """..."""          # the instruction body — optional (probed)
-description_file = "steps/x.md"  # corpus: 188 — must resolve, or hard load error (probed)
-needs = ["other-id"]             # corpus: 210 — the DAG edge
-condition = "..."                # corpus: 25
-expand = ...                     # corpus: 23 — late-bound expansion
-expand_vars = ...                # corpus: 17
-metadata = { "gc.run_target" = "gc.run-operator", "gc.provider" = "claude" }
-```
+| Key | Req | Notes |
+|---|---|---|
+| `id` | **yes** | unique across the formula **including `children`** **[v]** |
+| `title` | **yes** | unless `expand` is set **[v]** |
+| `description` | no | the instruction body |
+| `description_file` | no | path to Markdown; must resolve or v2 **fails fast** **[v]**; over 4096B it becomes a pointer |
+| `notes` | no | |
+| `type` | no | `task`/`bug`/`feature`/`epic`/`chore` — not validated |
+| `priority` | no | int 0–4; out of range rejected |
+| `tags` | no | []string. The TOML key is `tags`; `labels` is the deprecated JSON form |
+| `assignee` | no | |
+| `needs` / `depends_on` | no | aliases; both become blocking edges; must resolve **[v]** |
+| `condition` | no | compile-time filter: `{{v}}`, `!{{v}}`, `{{v}} == x`, `{{v}} != x` |
+| `children` | no | nested steps, same schema, shared id namespace |
+| `expand` / `expand_vars` | no | inline expansion; the step is replaced |
+| `waits_for` | no | `all-children`, `any-children`, `children-of(id)` — **inert in v0** |
+| `metadata` | no | string map; `gc.*` reserved |
+| `[steps.check]` | no | graph-only |
+| `[steps.retry]` | no | graph-only |
+| `[steps.drain]` | no | graph-only |
+| `[steps.on_complete]` | no | graph-only |
+| `[steps.gate]` | no | `{type, id, timeout}` — **inert in v0** |
+| `[steps.loop]` | no | see below; until-loops are **inert** |
+| `timeout` | no | positive Go duration; **requires `check`** |
+| `[steps.tally]` | — | **removed** — `steps.tally was removed from the SDK` |
 
-`description` and `description_file` are alternatives; the corpus prefers the file (188 vs 71),
-which matters for a compiler — long prompt bodies belong in their own files.
+Unknown step keys are silently ignored.
 
-### `[steps.check]` — the deterministic gate
+### `[steps.check]` — the gate
 
 ```toml
 [steps.check]
-max_attempts = 1                 # REQUIRED, >= 1 (probed)
+max_attempts = 1                  # required, >= 1                     [v]
 [steps.check.check]
-mode = "exec"                    # REQUIRED — only exec is supported (probed)
-path = ".gc/scripts/checks/x.sh" # REQUIRED (probed)
-timeout = "2m"                   # corpus: 57
+mode = "exec"                     # required, only exec supported      [v]
+path = ".gc/scripts/checks/x.sh"  # required, non-empty                [v]
+timeout = "2m"                    # positive duration; beats step timeout
 ```
 
-**This is the gate primitive.** A shell script the runtime runs, not a thing the step promises
-to do. `research-decision`'s gate says it outright: the citation check "must not be waived by
-a model."
+**Script exit codes are the contract:**
 
-**Not enforced (probed):** the script at `path` need not exist. A formula referencing a check
-that was never written compiles clean.
+| Exit | Meaning |
+|---|---|
+| `0` | pass — the step closes |
+| `75` | infrastructure unreachable — re-run, **attempt not consumed** |
+| other | "not yet" — consumes an attempt |
+
+Materializes as a spec sidecar, an iteration bead, and a control bead of kind `ralph`.
 
 ### `[steps.retry]`
 
 ```toml
-[steps.retry]
-max_attempts = 2
-on_exhausted = "hard_fail"       # hard_fail | soft_fail (probed)
+max_attempts = 2                  # >= 1                                [v]
+on_exhausted = "hard_fail"        # hard_fail (default) | soft_fail     [v]
 ```
 
-### `[steps.drain]` — fan-out over a convoy
+`soft_fail` closes the control as passed with `gc.final_disposition = soft_fail`.
+
+### `[steps.drain]` — fan-out
 
 ```toml
-[steps.drain]
-formula = "item-formula"         # REQUIRED (probed)
-context = "separate"             # separate | shared (probed)
-member_access = "read"           # read | exclusive (probed)
-on_item_failure = "skip_remaining"  # skip_remaining | continue (probed)
-max_units = 10                   # corpus: 2
+formula = "item-formula"          # required; no {{templated}} names    [v]
+context = "separate"              # separate (default) | shared         [v]
+member_access = "read"            # read (default) | exclusive          [v]
+max_units = 100                   # [1,100], default 100 — a hard cap
+on_item_failure = "continue"      # skip_remaining | continue           [v]
+continuation_group = "..."        # only with context = "shared"
 [steps.drain.item]
-single_lane = true               # corpus: 13
+single_lane = true                # must be true for shared drains
 ```
 
-This is the parent/item split — the formula equivalent of a batch step followed by per-unit
-steps. `drain-probe-item.formula.toml` in eb-city exists precisely because the v2 spec
-documents the drain step's keys but not how per-member data reaches the item formula.
+`on_item_failure` defaults differ by context: `continue` for separate, `skip_remaining` for
+shared. **The item formula must itself declare the v2 contract.** Drain forces targeted
+invocation.
 
-### `[steps.children]` and `[template]`
+### `[steps.on_complete]` — fan-out over structured output
 
-`steps.children.*` (corpus: 10) and a whole `[template]` block with `template.children.*`
-(corpus: 85) mirror the step keys. Templates are how the `build-*` family shares a skeleton.
-**Not established:** the precise semantics of template expansion.
+`for_each` (must start with `output.`) and `bond` are required together; `parallel` (default
+true) and `sequential` are mutually exclusive. Placeholders `{item}`, `{item.field}`, `{index}`.
 
-## `metadata` — the real semantic surface
+### `[steps.loop]`
 
-Step behavior is carried in metadata, not in typed fields. Counts are from the corpus:
+Exactly one of `count`, `until`, `range`; `body` non-empty; `max` required with `until`.
+**Until-loop re-execution is inert** — the label is written, nothing reads it, exactly one
+iteration runs. Use `check` for orchestrator-driven re-execution.
 
-| Key | Count | What it carries |
-|---|---|---|
-| `gc.run_target` | 358 | which role/runner executes the step |
-| `gc.build.artifact_schema` | 74 | the schema the step's artifact must satisfy |
-| `gc.build.artifact_path_keys` | 74 | which output keys are paths |
-| `gc.continuation_group` | 35 | session continuity across steps |
-| `gc.output_json_schema` | 23 | schema enforced on the step's JSON output |
-| `gc.output_json_required` | 23 | whether that output is mandatory |
-| `gc.provider` | 13 | which provider runs it |
-| `gc.reviewer_model`, `opt_model` | — | model selection per step |
-| `gc.scope_role`, `gc.scope_ref`, `gc.scope_name` | 10/8/2 | scoping |
-| `gc.on_fail` | 6 | failure routing |
-| `gc.session_affinity` | 6 | session reuse |
-| `gc.kind`, `gc.publisher` | 8/9 | — |
+## The incompatibility matrix
 
-A compiler emitting formulas is mostly a **metadata generator**. The typed surface is small;
-the behavior is in these keys, and they are conventions rather than a schema.
+A step may carry at most one of these, with these exclusions:
 
-## Two compilers
-
-`[requires] formula_compiler = ">=2.0.0"` selects the v2 compiler, and the difference is
-observable (**probed**): a v2 formula with one step compiles to **two** — the compiler appends
-a terminal `workflow-finalize` step depending on the last one. The same formula without
-`[requires]` compiles to one step, with no finalize.
-
-Emit v2. Know that the finalize step exists, because it will appear in every diagram and every
-step count your compiler reports.
-
-## What gc enforces
-
-Ten rules, all reproduced by `./probe.sh`:
-
-| # | Rule |
+| Construct | Cannot combine with |
 |---|---|
-| 1 | `steps[n]: id is required` |
-| 2 | `title is required (unless using expand)` |
-| 3 | duplicate step id, naming both indices |
-| 4 | `needs` references an unknown step |
-| 5 | a dependency cycle |
-| 6 | `check.max_attempts` must be >= 1 |
-| 7 | `check.check.mode` — only `exec` |
-| 8 | `check.check.path` is required |
-| 9 | `retry.on_exhausted` — `hard_fail` or `soft_fail` |
-| 10 | `drain` — `formula` required; `context` separate/shared; `member_access` read/exclusive; `on_item_failure` skip_remaining/continue |
+| `check` | `loop`, `on_complete`, `gate`, `expand`, `assignee`, `retry` **[v]** |
+| `retry` | `check` **[v]**, `loop`, `on_complete`, `gate`, `expand`, `children` |
+| `drain` | `assignee`, `expand`, `gate`, `loop`, `on_complete`, `check`, `retry`, `children`, `timeout`, authored `gc.kind` |
 
-That is a **structural** validator. It checks that the graph is well formed.
+This is the constraint a generator will violate first. A step that both runs a model and
+carries its own gate is not expressible — the gate is a separate step, or the check is the
+step. That is the same conclusion the loop's V17 reaches from the other direction.
 
-## What gc does not enforce
+## Reserved `gc.*` metadata
 
-Also probed, and this is the important half:
+| Key | Author may set | Purpose |
+|---|---|---|
+| `gc.run_target` | yes | routing intent; resolved to `gc.routed_to` at dispatch. 358 uses **[c]** |
+| `gc.scope_name`, `gc.scope_role`, `gc.scope_ref` | yes | scoping; `scope_role` ∈ setup/member/teardown/body/control |
+| `gc.on_fail` | yes | only `abort_scope` |
+| `gc.continuation_group` | yes | shared execution group |
+| `gc.kind` | **only `scope`, `cleanup`** | everything else is compiler-owned |
+| `gc.output_json_required` | compiler | |
+| `gc.output_json` | **deprecated** | `gc lint` warns; use `drain` |
+| `gc.model` | **deprecated** | use `opt_model`; `gc doctor` migrates |
+| `opt_*` | yes | provider options, validated at spawn |
+
+Authoring any reserved `gc.*` key forces the v2 declaration.
+
+`gc.kind` vocabulary — control kinds `retry`, `ralph`, `check`, `retry-eval`, `fanout`,
+`drain`, `scope-check`, `workflow-finalize` are dispatched; `scope`, `cleanup`, `run`,
+`retry-run` are structural and never dispatched; `workflow`, `wisp` are roots; `spec` is a
+sidecar.
+
+## What the compiled graph looks like
+
+Flat, topologically ordered, blocking edges only. `workflow-finalize` is appended and depends
+on every sink, **excluding** teardown steps (`gc.scope_role = "teardown"`), which outlive
+settlement. Non-root nodes get non-blocking `tracks` edges to the root for cascade deletion.
+The root is stamped `gc.kind = "workflow"` plus `gc.formula_hash` (SHA-256) and
+`gc.formula_source`.
+
+That hash is worth noting: **Gas City already content-hashes the formula.** Your acceptance
+register can sign that hash rather than inventing its own.
+
+## File resolution
+
+`formulas/<name>.toml` (canonical) beats `<name>.formula.toml` (deprecated) beats
+`<name>.formula.json` (loader-only), within a layer. Layers, lowest to highest: city packs,
+city's own `formulas/`, rig packs, rig `formulas_dir`. Last wins. `[formulas].dir` in
+`city.toml` is a hard error.
+
+## What gc enforces — reproduced locally
+
+`./probe.sh` reproduces: step `id` required; `title` required unless `expand`; duplicate id;
+`needs` unresolved; dependency cycle; `check.max_attempts >= 1`; `check.check.mode` exec only;
+`check.check.path` required; `on_exhausted` enum; all four drain enums; `required`+`default`
+conflict; reserved variable declaration; check/retry incompatibility.
+
+## What gc does not enforce — where your rules live
 
 | Not checked | Consequence |
 |---|---|
-| A formula with no steps | Compiles. Reports `Root only: true` |
-| A step with no description | Compiles. An empty instruction |
-| `{{undeclared_var}}` in a description | Compiles. Ships the literal braces to the agent |
-| An unknown top-level key | Accepted silently. A typo'd key is a no-op |
-| A check script that does not exist | Compiles. **A gate that cannot run** |
-| Whether any step has a check at all | Compiles. A formula with no gates is valid |
-| Whether a human ever approves anything | Compiles |
-| Whether the method is any good | Not its job |
+| A formula with no steps | compiles; `Root only: true` **[v]** |
+| A step with no description | compiles; an empty instruction **[v]** |
+| `{{undeclared_var}}` | compiles; ships literal braces to the agent **[v]** |
+| An unknown top-level or step key | silently ignored **[v]** |
+| **A check script that does not exist** | **compiles — a gate that cannot run** **[v]** |
+| Whether any step has a check at all | compiles; a formula with no gates is valid |
+| Whether a human approves anything | compiles |
+| `vars.<name>.type` | parsed, never enforced |
+| Whether the method is any good | not its job |
 
-**The missing check script is the one to dwell on.** It is the formula equivalent of the
-scaffolder bug that dropped a gate: a control that is declared, reported, and absent. gc will
-not catch it. The compiler must.
+The missing check script is the formula equivalent of the scaffolder bug that dropped a gate:
+declared, reported, absent. gc will not catch it. The compiler must.
 
-## Where the compiler's own rules go
+## The compiler's own rules
 
-The loop compiler's 22 rules are about *method quality* — they are not structural, which is
-exactly why they do not overlap with the ten above. Carried across:
+Carried from the loop compiler's 22, which are about method quality and therefore do not
+overlap with gc's structural set:
 
-| Loop rule | Formula compiler equivalent |
+| Loop rule | Formula equivalent |
 |---|---|
-| V3 approver is a named person | A human gate step exists, with a `notify` var bound to a person |
-| V4 exit criterion contains a figure | `[catalog]` or metadata carries one — no native field, needs a convention |
-| V7 a judgment names what checks it | Every step carrying `gc.provider` has a `[steps.check]` or a downstream one |
-| V13 thinking is followed by a test or gate | Same, expressed over `needs` |
-| V14 at least two gates | At least two `[steps.check]` blocks |
-| V15 a condition contains a number or "never" | The check script exists **and is executable** — stronger than the loop's version |
-| V16 a refusal names the next human action | The check's failure output names one |
-| V17 proof is written by a mechanical step | The artifact is written by a step with no `gc.provider` |
-| V19 three KPIs | No native field — needs a convention |
-| V21 batch before unit | Parent formula and `[steps.drain]` item formula |
+| V3 named approver | a human gate step exists with `notify` bound to a person |
+| V4 exit criterion has a figure | no native field — `[catalog]` or metadata, by convention |
+| V7 a judgment names its check | every step with `gc.provider`/`opt_model` has a downstream `check` step |
+| V13 thinking is followed by a test | same, over `needs` |
+| V14 at least two gates | at least two `[steps.check]` blocks |
+| V15 a condition has a number | the check script **exists and is executable** — stronger than prose |
+| V16 a refusal names the next action | the check's non-zero output names one |
+| V17 proof written mechanically | the artifact step carries no provider — and the matrix enforces half of this already |
+| V19 three KPIs | no native field — by convention |
+| V21 batch before unit | parent formula plus `[steps.drain]` item formula |
 
-Plus rules only the formula target needs:
+New rules the formula target demands:
 
-- Every `check.check.path` resolves to a file that exists and is executable.
-- Every `{{var}}` used is declared in `[vars]`.
+- Every `check.check.path` resolves to an existing, executable file.
+- Every `{{var}}` used is declared, and is not `convoy_id` or `bead_id`.
 - Every `description_file` resolves.
 - `formula`, `[catalog].name` and the filename agree.
-- The graph has exactly one terminal step before `workflow-finalize`.
-- No step both carries `gc.provider` and writes the artifact named in `gc.build.artifact_schema`.
+- No step carries two of `check`, `retry`, `drain`.
+- Emit `[requires] formula_compiler`, never bare `contract`.
+- Emit `<name>.toml`, never `<name>.formula.toml`.
+- Any drain's item formula also declares v2.
+- Exit 75 is reserved — a generated check script must not return it for a business failure.
 
-## Reproducing this
+## Reproducing
 
 ```bash
 ./probe.sh
 ```
 
-Builds a city in a temp dir, never registers it, so no controller and no patrol runs against
-it. The output is the rule list. Re-run it against a new gc and diff, rather than trusting
-this file.
+Builds a city in a temp dir and never registers it, so no controller and no patrol runs
+against it. Diff its output against a new `gc` rather than trusting this file.
