@@ -21,6 +21,34 @@ machine. Where the spec and this machine disagree, the spec wins and the differe
 That is why it is a good compile target. A design describes a method. A formula *is* a method.
 The unit of work arrives separately, as a bead.
 
+## The data model (spec §0)
+
+A formula encodes **how** work proceeds — steps, ordering, dependencies, control flow —
+independent of storage. It produces work when applied; it is not itself work.
+
+```
+formula (TOML)
+  → compiled recipe            flat, topologically ordered
+    → workflow root bead       type "task", gc.kind = "workflow"
+    + step beads               independently routable work, blocking edges only
+    + control beads            orchestrator-owned: check, retry, fanout, drain,
+                               scope-check, workflow-finalize
+```
+
+**The execution split is the thing to internalize.** The orchestrator executes every control
+bead. Agents execute only plain work beads. Your compiler authors work beads and *declares*
+control; it never authors a control bead directly.
+
+How v2 differs from v1, because the local corpus is full of both:
+
+| Axis | v1 | v2 |
+|---|---|---|
+| Shape | parent-child molecule tree | flat graph, blocking edges only |
+| Engine | none; conditions resolve at cook time | the orchestrator's control dispatcher |
+| Advancement | agents, inside their own sessions | the orchestrator, outside them |
+| Fan-out | manual routing across agents | per-step routing at dispatch; drain and on_complete scatter at runtime |
+| Root | the container root is the handle | the root blocks on `workflow-finalize` |
+
 ## Start here — six things that bite a compiler author
 
 1. **Canonical filename is `formulas/<name>.toml`.** `<name>.formula.toml` is accepted but
@@ -203,23 +231,122 @@ Authoring any reserved `gc.*` key forces the v2 declaration.
 `retry-run` are structural and never dispatched; `workflow`, `wisp` are roots; `spec` is a
 sidecar.
 
-## What the compiled graph looks like
-
-Flat, topologically ordered, blocking edges only. `workflow-finalize` is appended and depends
-on every sink, **excluding** teardown steps (`gc.scope_role = "teardown"`), which outlive
-settlement. Non-root nodes get non-blocking `tracks` edges to the root for cascade deletion.
-The root is stamped `gc.kind = "workflow"` plus `gc.formula_hash` (SHA-256) and
-`gc.formula_source`.
-
-That hash is worth noting: **Gas City already content-hashes the formula.** Your acceptance
-register can sign that hash rather than inventing its own.
-
 ## File resolution
 
 `formulas/<name>.toml` (canonical) beats `<name>.formula.toml` (deprecated) beats
 `<name>.formula.json` (loader-only), within a layer. Layers, lowest to highest: city packs,
 city's own `formulas/`, rig packs, rig `formulas_dir`. Last wins. `[formulas].dir` in
 `city.toml` is a hard error.
+
+## Compilation (spec §2)
+
+Ten deterministic stages, in order: load and resolve `extends` → reserved-symbol validation →
+control-flow expansion → advice, then inline expansion → compose expand/map, then aspects →
+condition filtering, then standalone expansion → requirement merge and the explicit-declaration
+check → retry transform, then check transform → host requirement validation → graph validation,
+control injection, recipe.
+
+Two consequences for a generator:
+
+- **The explicit-declaration check runs *after* expansion and aspects.** A construct composed
+  in from a parent triggers it too. You cannot dodge the v2 opt-in by inheriting `check`.
+- **The retry and check transforms run late.** What you author as one step with a `check`
+  becomes a spec sidecar, an iteration bead and a control bead. Your step counts will not match
+  the compiled graph.
+
+### Edges
+
+Three kinds, and only the first blocks readiness in the way you would expect:
+
+| Edge | From | Meaning |
+|---|---|---|
+| `blocks` | `needs` / `depends_on` | ordinary blocking dependency |
+| `waits-for` | `waits_for` | readiness-blocking; the all/any distinction is inert in v0 |
+| `tracks` | compiler | informational, non-blocking; cascade deletion, and root → finalizer |
+
+**There are no parent-child edges.** `children` affects the ID namespace and validation only,
+never runtime hierarchy. A step does not wait for its children unless you say so in `needs`.
+
+### Root stamping
+
+The recipe root is type `task`, `gc.kind = "workflow"`, plus a `gc.formula_contract` marker.
+Sling adds `gc.input_convoy_id` (targeted), `gc.graphv2_root_key` (idempotency) and
+`gc.graphv2_vars.v1` (a variable snapshot). Non-batch adds `gc.formula_source` and
+**`gc.formula_hash`, a SHA-256 of the raw formula bytes**.
+
+That hash matters to you: **Gas City already content-hashes the method.** An acceptance
+register should sign that hash rather than invent its own.
+
+### The close-ownership invariant
+
+**The compiled graph never blocks a node on the control bead that closes it.** A scope body is
+not blocked by its scope-checks; the workflow root is not blocked by `workflow-finalize`, which
+is why the root reaches it through `tracks` instead. Such an edge is a permanent deadlock — the
+store refuses to close a blocked issue, and the only bead that could clear the blocker is the
+one being refused. The compiler rejects recipes containing it.
+
+Your generator must not emit one either, and the case it will reach for is exactly the wrong
+one: making a step depend on its own gate.
+
+## Scopes and failure policy (spec §3.5)
+
+A scope groups steps under one durable failure policy. The body is an authored step with
+`gc.kind = "scope"`, a `gc.scope_name`, and `gc.scope_role = "body"`. Members carry
+`gc.scope_ref = "<body-step-id>"` and a role of `setup`, `member` or `teardown`. Cleanup steps
+use `gc.kind = "cleanup"`. The compiler injects a `<step>-scope-check` control per member.
+`scope` and `cleanup` are the only `gc.kind` values an author may set.
+
+`gc.on_fail = "abort_scope"` is the only specified value. On a member failure the orchestrator
+skips the remaining open members, propagates the member's non-`gc.*` metadata onto the body so
+diagnostics survive, and closes the body `gc.outcome = fail`.
+
+**The worker-result contract is fail-closed, and this is the rule generated steps must honor:**
+a member that closes with `gc.outcome = fail` counts as failed — and so does a member with a
+**missing or unknown** `gc.outcome`. Only `pass` and `skipped` do not abort the scope. Every
+step your compiler emits must close with an explicit outcome, or it will abort a scope by
+saying nothing.
+
+**Teardown outlives settlement.** Teardown steps never block `workflow-finalize` and are left
+open when finalize closes everything else, so they still run. They may read the run's final
+`gc.outcome` — which gives you "clean up on pass, preserve the workspace on fail" for free.
+Teardown never re-grades the root.
+
+**Finalize** aggregates blocker outcomes into one pass/fail, closes the root first for
+crash-recovery, closes the spec sidecars, and on pass only propagates closure along the
+`gc.source_bead_id` chain. A failure deliberately leaves parent source beads open for
+investigation.
+
+## Composition and inheritance (spec §1.7)
+
+`extends` merges parents into a child:
+
+- **Steps** — a child step with the same id **replaces the parent's whole step**, in the
+  parent's position. No field-level merge. New child steps append.
+- **Vars** — inherited, child overrides.
+- **`phase`** — child, else the first parent declaring one.
+- **`pour`** — monotonic. Any ancestor's `true` sticks and a child cannot opt out.
+- **`contract` / `requires`** — child, else first parent; but requirement *constraints* are
+  collected from **every** parent and validated as a set. A child may only tighten.
+- **Circular chains** fail: `circular extends detected: a -> b -> a`.
+
+**A formula resolved through `extends` drops `advice` and `pointcuts` entirely — including its
+own.** When both sides declare `compose`, the merge keeps `bond_points`, `hooks`, `expand` and
+`map`, and drops `branch`, `gate` and `aspects` from both. If your compiler ever emits those,
+inheritance will silently delete them.
+
+## Conformance (spec §5)
+
+`formula_compiler` is the **only** `[requires]` axis. A bad comparator fails
+`formula.compiler_requirement_invalid`; an unknown axis fails `formula.requirement_unknown`.
+The host switch is `[daemon] formula_v2` in `city.toml`, default `true`; with it off, compiler
+capability is 1.0.0 and every v2 formula fails to compile.
+
+`gc doctor`'s `formula-requirements` check reports per layer: parse failures as errors,
+deprecated `contract = "graph.v2"` as a warning, graph-only constructs without the v2
+declaration as an error, host mismatches as an error. `gc lint` warns on deprecated
+`gc.output_json`; warnings do not fail lint.
+
+Run both in the compiler's own test loop. They are the equivalent of `make ready`.
 
 ## What gc enforces — reproduced locally
 
@@ -274,6 +401,10 @@ New rules the formula target demands:
 - Emit `<name>.toml`, never `<name>.formula.toml`.
 - Any drain's item formula also declares v2.
 - Exit 75 is reserved — a generated check script must not return it for a business failure.
+- Every emitted step closes with an explicit `gc.outcome` — silence reads as failure.
+- No step is blocked on the control bead that closes it (the close-ownership invariant).
+- Nothing relies on `children` for ordering; ordering is `needs` or it does not exist.
+- Cleanup belongs in a `teardown` scope member, never in the last work step.
 
 ## Reproducing
 
@@ -283,3 +414,27 @@ New rules the formula target demands:
 
 Builds a city in a temp dir and never registers it, so no controller and no patrol runs
 against it. Diff its output against a new `gc` rather than trusting this file.
+
+## Coverage against the spec's contents
+
+| Spec section | Here |
+|---|---|
+| 0 Concept and Data Model | The data model |
+| 1.1 File Naming and Layers | File resolution |
+| 1.2 Top-Level Keys | Top-level keys |
+| 1.3 Steps | `[[steps]]`, the incompatibility matrix |
+| 1.4 Variables | `[vars]` |
+| 1.5 Conditions | `[[steps]]` — `condition` grammar only |
+| 1.6 Loops | `[steps.loop]` — summary |
+| 1.7 Composition and Inheritance | Composition and inheritance |
+| 1.8 Description Files | `[[steps]]` — resolution and the 4096B pointer |
+| 1.9 Validation | What gc enforces / does not enforce |
+| 2 Compilation | Compilation |
+| 3.1–3.3 Check, Retry, Drain | the three sub-tables |
+| 3.4 On-Complete and Tally | `[steps.on_complete]`; tally removed |
+| 3.5 Scopes and Failure Policy | Scopes and failure policy |
+| 4 Accepted But Inert | marked inline as **inert** |
+| 5 Conformance and Compatibility | Conformance |
+
+Thin by choice: 1.5, 1.6, and the aspect/advice/pointcut surface. Read the spec for those
+before using them.
