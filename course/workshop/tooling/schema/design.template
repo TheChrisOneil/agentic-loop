@@ -46,5 +46,7 @@ artifact:
 integrity:
 
 @kpis
-# name | cost | quality | throughput | control | baseline today, or "unmeasured"
+# name | kind | baseline today, or "unmeasured"
+# kind: cost | quality | throughput | control | tvr-velocity | tvr-throughput | tvr-speed | tvr-margin
+# at least one cost, one quality and one tvr-* KPI; no other kind is accepted
  |  |
