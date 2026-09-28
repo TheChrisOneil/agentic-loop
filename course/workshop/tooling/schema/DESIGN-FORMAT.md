@@ -77,9 +77,30 @@ A `unit` step runs once per unit. Every batch step must come before every unit s
 
 ### `@kpis` — table, `name | kind | baseline`, at least three
 
-`kind` is `cost`, `quality`, `throughput` or `control`. At least one `cost` and one `quality`
-are required. `baseline` is what the manual process does today, or `unmeasured` — which the
-validator accepts and warns about.
+`kind` is one of eight values in two families.
+
+**Operational (TCO).** What the loop costs and whether it can be trusted.
+
+| Kind | Measures |
+|---|---|
+| `cost` | Spend per completed decision |
+| `quality` | Defects that escape the loop |
+| `throughput` | Time or volume through the loop itself |
+| `control` | Refusals, overrides and other control activity |
+
+**Total Value Realized (TVR).** What the business gains when the loop runs at scale. The four
+kinds are the four value vectors in the executive deck (`course/harness/project/slides/tvr.html`).
+
+| Kind | Value vector | Measures |
+|---|---|---|
+| `tvr-velocity` | Market velocity | Cycle time at a client touchpoint, e.g. days to collect or to respond |
+| `tvr-throughput` | High-yield throughput | Volume handled by the existing team, e.g. units per reviewer per week |
+| `tvr-speed` | Organizational speed | Iterations of a product, proposal or response per period |
+| `tvr-margin` | Margin amplification | Value recovered or retained per unit, net of compute spend |
+
+At least one `cost`, one `quality` and one `tvr-*` KPI are required. `baseline` is what the
+manual process does today, or `unmeasured` — which the validator accepts and warns about. A TVR
+baseline nobody has measured is written `unmeasured`, never estimated.
 
 ## Minimum viable design
 
@@ -120,4 +141,5 @@ integrity: Checksum verified at delivery
 cost per completed decision | cost | unmeasured
 escaped defect rate | quality | 0 known in the last quarter
 review minutes per unit | throughput | 9 minutes
+days from invoice receipt to payment decision | tvr-velocity | unmeasured
 ```

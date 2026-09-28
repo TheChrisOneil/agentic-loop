@@ -155,6 +155,11 @@ END {
   if (unmeas>0) rec("WARN","V20",unmeas " KPI baseline(s) unmeasured","measure the manual process first, or you can never claim an improvement")
   else if (k>0) ok("V20","every KPI carries a baseline")
 
+  # V23 total value realized
+  tvr=KIND["tvr-velocity"]+KIND["tvr-throughput"]+KIND["tvr-speed"]+KIND["tvr-margin"]
+  if (tvr>0) ok("V23",tvr " KPI(s) measure total value realized")
+  else rec("ERROR","V23","no KPI measures total value realized","add a tvr-velocity, tvr-throughput, tvr-speed or tvr-margin KPI; cost says what it spends, TVR says what it returns")
+
   # ---- output ----
   if (mode=="tsv") {
       for (i=1;i<=n;i++) printf "%s\t%s\t%s\t%s\n", SEV[i], ID[i], MSG[i], FIX[i]
