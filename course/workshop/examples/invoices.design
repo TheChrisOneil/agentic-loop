@@ -47,3 +47,4 @@ cost per completed decision | cost | unmeasured
 escaped defect rate | quality | 0 known in the last quarter
 review minutes per unit | throughput | 9 minutes manual
 refusal rate | control | not applicable before this loop
+days from invoice receipt to payment decision | tvr-velocity | unmeasured
