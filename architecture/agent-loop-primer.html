@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Loop Primer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F5F7FA; --panel:#FFFFFF; --ink:#16202B; --muted:#55626F; --rule:#D6DDE5;
+  --accent:#1D5CA3; --accent-soft:#E3ECF7; --model:#A8316F; --model-soft:#F6E4EE;
+  --gate:#8F5B00; --gate-soft:#F7EDD9; --ok:#1E7A4C; --ok-soft:#DFF1E7;
+  --code-bg:#EEF1F5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F151C; --panel:#161E27; --ink:#E4EAF0; --muted:#9AA7B4; --rule:#2A3542;
+    --accent:#7FB0EC; --accent-soft:#1B2B40; --model:#EE8BBE; --model-soft:#3A1D2C;
+    --gate:#E6B35A; --gate-soft:#35290F; --ok:#6FD3A0; --ok-soft:#14301F; --code-bg:#1B2530;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F151C; --panel:#161E27; --ink:#E4EAF0; --muted:#9AA7B4; --rule:#2A3542;
+  --accent:#7FB0EC; --accent-soft:#1B2B40; --model:#EE8BBE; --model-soft:#3A1D2C;
+  --gate:#E6B35A; --gate-soft:#35290F; --ok:#6FD3A0; --ok-soft:#14301F; --code-bg:#1B2530;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:32px 64px;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:24px;padding-inline:16px}nav.toc{position:static!important}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:13px}
+nav.toc .lbl{font:600 11px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+nav.toc a{display:flex;gap:8px;color:var(--ink);text-decoration:none;padding:5px 8px;border-radius:4px}
+nav.toc a span{font-family:var(--mono);color:var(--muted);min-width:22px}
+nav.toc a:hover,nav.toc a:focus-visible{background:var(--accent-soft);outline:none}
+main{min-width:0}
+header.head{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:28px}
+.eyebrow{font:600 11px/1 var(--cond);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{font:600 clamp(28px,4.2vw,40px)/1.1 var(--cond);margin:10px 0 12px;text-wrap:balance;letter-spacing:-.01em}
+h2{font:600 22px/1.25 var(--cond);margin:0 0 6px;text-wrap:balance}
+h3{font:600 15px/1.3 var(--sans);margin:22px 0 8px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:13px var(--mono);color:var(--muted)}
+.hdr{display:grid;gap:10px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;margin-bottom:36px}
+.hdr p{margin:0;max-width:78ch}
+.hdr b{font:600 11px/1 var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:inline-block;min-width:74px}
+section{margin-bottom:48px;scroll-margin-top:24px}
+section > .sub{color:var(--muted);margin:0 0 16px;max-width:75ch}
+p{max-width:75ch}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:3px}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 11px/1.2 var(--cond);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.fig{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px;overflow-x:auto;margin:12px 0}
+.fig pre.mermaid{margin:0;background:transparent;display:flex;justify-content:center}
+.cap{font:12px/1.5 var(--mono);color:var(--muted);margin:6px 0 0}
+/* 4+1 map */
+.plus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;gap:10px;max-width:640px;margin:8px 0 12px}
+.plus a{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--rule);border-radius:6px;background:var(--panel);color:var(--ink);text-decoration:none}
+.plus a:hover,.plus a:focus-visible{border-color:var(--accent);outline:none}
+.plus a b{font:600 14px/1.2 var(--cond)}
+.plus a small{color:var(--muted);font-size:12px;line-height:1.4}
+.plus .c{grid-column:2;grid-row:2;background:var(--accent-soft);border-color:var(--accent)}
+.plus .n{grid-column:1;grid-row:1}.plus .e{grid-column:3;grid-row:1}
+.plus .s{grid-column:1;grid-row:3}.plus .w{grid-column:3;grid-row:3}
+@media (max-width:520px){.plus{grid-template-columns:minmax(0,1fr)}.plus a{grid-column:1!important;grid-row:auto!important}}
+.chip{display:inline-block;font:500 11px/1 var(--mono);padding:3px 7px;border-radius:999px;vertical-align:1px}
+.chip.model{background:var(--model-soft);color:var(--model)}
+.chip.code{background:var(--accent-soft);color:var(--accent)}
+.chip.gate{background:var(--gate-soft);color:var(--gate)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:13px var(--mono);margin:8px 0 4px}
+.pipe .arrow{color:var(--muted)}
+.pipe .st{padding:4px 9px;border:1px solid var(--rule);border-radius:4px;background:var(--panel)}
+.find{border-left:3px solid var(--gate);background:var(--panel);padding:12px 16px;border-radius:0 6px 6px 0;margin:12px 0}
+.find.ok{border-left-color:var(--ok)}
+.find p{margin:4px 0}
+ol.refs{padding-left:0;list-style:none;font-size:14px;display:grid;gap:6px}
+ol.refs li{display:grid;grid-template-columns:36px 1fr;max-width:80ch}
+ol.refs li span{font-family:var(--mono);color:var(--muted)}
+a{color:var(--accent)}
+.inf{font-style:italic;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+<!-- Standalone copy: Mermaid is loaded here; the published artifact renders it natively. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, securityLevel: "strict",
+    theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default" });
+</script>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">Contents</div>
+  <ol>
+    <li><a href="#scope"><span>1</span>Scope</a></li>
+    <li><a href="#activity"><span>2</span>Activity</a></li>
+    <li><a href="#sequence"><span>3</span>Sequence</a></li>
+    <li><a href="#state"><span>4</span>State machine</a></li>
+    <li><a href="#class"><span>5</span>Judge seat</a></li>
+    <li><a href="#patterns"><span>6</span>Patterns</a></li>
+    <li><a href="#layers"><span>7</span>Supporting layers</a></li>
+    <li><a href="#hipaa"><span>8</span>HIPAA relevance</a></li>
+    <li><a href="#refs"><span>R</span>References</a></li>
+  </ol>
+  <div class="lbl" style="margin-top:20px">Also in this folder</div>
+  <ol><li><a href="workshop-architecture.html"><span>→</span>Workshop compiler</a></li></ol>
+</nav>
+
+<main>
+<header class="head">
+  <div class="eyebrow">Primer · UML 2.5.1 [4]</div>
+  <h1>Agent Loop: one nightly tick of supplier invoices</h1>
+  <div class="meta">
+    <span>repo thechrisoneil/agentic-loop</span>
+    <span>path course/demo/</span>
+    <span>526 lines of shell in steps, lib, scripts</span>
+    <span>2026-09-24</span>
+  </div>
+</header>
+
+<div class="hdr">
+  <p><b>Purpose</b> Explain what the demo agent loop does, using UML diagrams grounded in the repository code.</p>
+  <p><b>EX</b> The loop is a nine-step shell pipeline. Code decomposes, matches, gates, verifies, proves and delivers; a model makes exactly one judgment per unit (<code>5-judge.sh</code>). <code>make tick</code> yields 9 units: 2 closed by rule, 3 refused, 4 proposed, 0 failed, 0 tokens.</p>
+</div>
+
+<section id="scope">
+  <h2>1. Scope</h2>
+  <p class="sub"><code>course/demo/</code> reconciles supplier invoices against purchase orders. The unit of work is <code>(supplier, purchase order)</code>: the smallest thing that gets one decision (<code>steps/1-decompose.sh:6-10</code>).</p>
+  <div class="pipe" aria-label="Loop stages">
+    <span class="st">1 decompose <span class="chip code">code</span></span><span class="arrow">→</span>
+    <span class="st">2 match <span class="chip code">code</span></span><span class="arrow">→</span>
+    <span class="st">3 select <span class="chip code">code</span></span><span class="arrow">→</span>
+    <span class="st">4 gate <span class="chip gate">gate</span></span><span class="arrow">→</span>
+    <span class="st">5 judge <span class="chip model">model</span></span><span class="arrow">→</span>
+    <span class="st">6 verify <span class="chip code">test</span></span><span class="arrow">→</span>
+    <span class="st">7 gate <span class="chip gate">gate</span></span><span class="arrow">→</span>
+    <span class="st">8 prove <span class="chip code">code</span></span><span class="arrow">→</span>
+    <span class="st">9 gate + deliver <span class="chip gate">gate</span></span>
+  </div>
+  <p class="cap">Stage legend from loop.sh:4-5. Steps 1-3 run once per tick; steps 4-9 run once per selected unit.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Outcome of one tick</th><th>Units</th><th>Model calls</th></tr></thead>
+    <tbody>
+      <tr><td>Closed by rule (<code>clean</code>, <code>within_tolerance</code>)</td><td class="num">2</td><td class="num">0</td></tr>
+      <tr><td>Refused at gate 4 (<code>no_po</code>, <code>injection_suspect</code>, <code>supervised</code>)</td><td class="num">3</td><td class="num">0</td></tr>
+      <tr><td>Proposed to A. Rivera, Accounts Payable</td><td class="num">4</td><td class="num">4</td></tr>
+      <tr><td>Failed</td><td class="num">0</td><td class="num">0</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Measured with make tick, JUDGE_MODE=stub (recorded answers, zero tokens).</p>
+</section>
+
+<section id="activity">
+  <h2>2. Activity diagram: one tick</h2>
+  <p class="sub">Each refusal or failure exits that unit only; the loop continues with the next (<code>loop.sh:26-32</code>).</p>
+  <div class="fig"><pre class="mermaid">
+flowchart TD
+  A([tick]) --> D[1 decompose: lines to units, key supplier + PO]
+  D --> M[2 match: arithmetic + injection screen, classify]
+  M --> S[3 select: sort by exposure, cap at BUDGET]
+  S -->|clean, within_tolerance| CR([closed_by_rule])
+  S -->|over budget| DF([deferred])
+  S -->|per unit| G1{4 gate_pre}
+  G1 -->|no_po, injection_suspect, supervised| RF([REFUSED.md + next human action])
+  G1 -->|proceed| J[[5 judge: the one model step]]
+  J --> V{6 verify: recompute to the cent}
+  V -->|mismatch| FL([failed + trust fail])
+  V -->|match| G2{7 gate_post: 4 checks}
+  G2 -->|fail| RF
+  G2 -->|pass| P[8 prove: proof.txt + sha256]
+  P --> G3{9 deliver: checksum intact?}
+  G3 -->|edited| BL([blocked])
+  G3 -->|intact| PR([PROPOSAL to named approver])
+  </pre></div>
+</section>
+
+<section id="sequence">
+  <h2>3. Sequence diagram: one unit (PO-1006)</h2>
+  <p class="sub">The judgment claims an adjustment of −720.00. Verify recomputes it from the raw files and agrees to the cent.</p>
+  <div class="fig"><pre class="mermaid">
+sequenceDiagram
+  participant L as loop.sh
+  participant G as 4-gate-pre
+  participant J as 5-judge
+  participant V as 6-verify
+  participant GP as 7-gate-post
+  participant P as 8-prove
+  participant D as 9-deliver
+  participant Led as ledger.tsv
+  L->>G: PO-1006
+  G->>Led: gate_pre proceed
+  L->>J: PO-1006
+  J-->>J: stub | human | claude
+  J->>Led: judge dispute
+  L->>V: PO-1006
+  V-->>V: claimed -720.00 vs recomputed -720.00
+  V->>Led: verify pass
+  L->>GP: PO-1006
+  GP->>Led: gate_post proceed
+  L->>P: PO-1006
+  P-->>P: write proof, write .sha
+  L->>D: PO-1006
+  D-->>D: sha256 now equals was
+  D->>Led: deliver proposed (tier watch)
+  D-->>L: outbox/PO-1006.md
+  </pre></div>
+  <h3>Gate 7 conditions</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Condition</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Call is one of <code>dispute discount duplicate partial not_on_po typo</code></td><td class="mono">7-gate-post.sh:16</td></tr>
+      <tr><td class="num">2</td><td>Evidence is at least 20 characters</td><td class="mono">7-gate-post.sh:17</td></tr>
+      <tr><td class="num">3</td><td>Next human action is at least 20 characters</td><td class="mono">7-gate-post.sh:18</td></tr>
+      <tr><td class="num">4</td><td>Arithmetic was independently recomputed</td><td class="mono">7-gate-post.sh:19</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="state">
+  <h2>4. State machine: unit lifecycle</h2>
+  <p class="sub">The loop never approves its own work: "It never approves its own work, on any day, at any trust tier" (<code>9-deliver.sh:5</code>).</p>
+  <div class="fig"><pre class="mermaid">
+stateDiagram-v2
+  [*] --> Classified: decompose + match
+  Classified --> ClosedByRule: clean or within_tolerance
+  Classified --> Deferred: beyond BUDGET
+  Classified --> Selected
+  Selected --> Refused: gate_pre
+  Selected --> Judged
+  Judged --> Failed: verify mismatch
+  Judged --> Verified
+  Verified --> Refused: gate_post
+  Verified --> Proved
+  Proved --> Blocked: checksum mismatch
+  Proved --> Proposed
+  Proposed --> [*]: human approves or rejects, outside the loop
+  </pre></div>
+</section>
+
+<section id="class">
+  <h2>5. Class view: the judge seat</h2>
+  <p class="sub">All three modes write the same four field TSV: <code>call</code>, <code>adjustment</code>, <code>evidence</code>, <code>next_action</code> (<code>5-judge.sh:35-54</code>). Downstream steps cannot tell them apart.</p>
+  <div class="fig"><pre class="mermaid">
+classDiagram
+  class JudgeSeat { &lt;&lt;interface&gt;&gt; +judge(unit) judgment.tsv }
+  class StubJudge { replays judgments.stub.tsv; 0 tokens }
+  class HumanJudge { reads stdin }
+  class ClaudeJudge { claude -p --model JUDGE_MODEL }
+  class Verifier { +recompute(unit) }
+  JudgeSeat &lt;|.. StubJudge
+  JudgeSeat &lt;|.. HumanJudge
+  JudgeSeat &lt;|.. ClaudeJudge
+  Verifier ..> JudgeSeat : distrusts output
+  </pre></div>
+</section>
+
+<section id="patterns">
+  <h2>6. Pattern mapping</h2>
+  <p class="inf">Inference: the source names no patterns. The mapping below is analysis.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Mechanism</th><th>Pattern</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><code>JUDGE_MODE</code> interchangeable seat</td><td>Strategy</td><td>[1]</td></tr>
+      <tr><td>Fixed step order in <code>loop.sh</code>; step bodies vary</td><td>Template Method</td><td>[1]</td></tr>
+      <tr><td>Gates 4, 7, 9; each may stop the unit</td><td>Chain of Responsibility, short circuit variant</td><td>[1]</td></tr>
+      <tr><td>Steps pass TSV files through <code>memory/</code></td><td>Pipes and Filters</td><td>[2]</td></tr>
+      <tr><td><code>ledger.tsv</code>, append only: "how it got there" (<code>lib/ledger.sh:3</code>)</td><td>Event Sourcing</td><td>[3]</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="layers">
+  <h2>7. Supporting layers</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Behavior</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Trust tiers</td><td><code>watch</code> under 10 runs or under 90% verified; <code>queue</code> at 10+ runs and 90%+; <code>auto</code> at 20+ runs and 95%+. A tier governs only what happens after checks pass.</td><td class="mono">scripts/trust-log.sh:2-10</td></tr>
+      <tr><td>Sentinel</td><td>Re-evaluates <code>goals/*.md</code> predicates; reports and never repairs. <code>make demo-tamper</code> exercises it.</td><td class="mono">scripts/verify-goals.sh:2-3</td></tr>
+      <tr><td>Configuration</td><td><code>TOL_USD=50</code>, <code>TOL_PCT=2</code>, <code>APPROVAL_CAP=2000</code>, <code>BUDGET=7</code>; no step invents a number</td><td class="mono">config.sh:13-16</td></tr>
+      <tr><td>Proof integrity</td><td>sha256 written at step 8, re-checked at step 9; an edited proof blocks delivery</td><td class="mono">9-deliver.sh:11-17</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="hipaa">
+  <h2>8. HIPAA relevance</h2>
+  <div class="find">
+    <p><span class="chip gate">inference</span> These properties transfer to a PHI workflow: an append only audit trail, tamper evident proof, a zero token deterministic default, a named human approver, and rule based injection screening before model exposure.</p>
+    <p><code>ClaudeJudge</code> needs a BAA covered model endpoint and PHI minimization in the prompt before adoption.</p>
+  </div>
+</section>
+
+<section id="refs">
+  <h2>References</h2>
+  <ol class="refs">
+    <li><span>[1]</span><div>E. Gamma, R. Helm, R. Johnson, and J. Vlissides, <i>Design Patterns: Elements of Reusable Object-Oriented Software</i>. Reading, MA, USA: Addison-Wesley, 1994.</div></li>
+    <li><span>[2]</span><div>F. Buschmann, R. Meunier, H. Rohnert, P. Sommerlad, and M. Stal, <i>Pattern-Oriented Software Architecture, Vol. 1: A System of Patterns</i>. Chichester, U.K.: Wiley, 1996.</div></li>
+    <li><span>[3]</span><div>M. Fowler, "Event Sourcing," martinfowler.com, Dec. 2005. [Online]. Available: https://martinfowler.com/eaaDev/EventSourcing.html</div></li>
+    <li><span>[4]</span><div>Object Management Group, <i>Unified Modeling Language (UML), Version 2.5.1</i>, OMG Doc. formal/17-12-05, Dec. 2017.</div></li>
+  </ol>
+</section>
+</main>
+</div>
+</body>
+</html>
