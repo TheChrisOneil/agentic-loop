@@ -45,3 +45,4 @@ cost per completed decision | cost | unmeasured
 wrong refunds released | quality | 2 in the last quarter
 days from request to release | throughput | 6 days
 refusal rate | control | not applicable before this loop
+refund requests closed per reviewer per week | tvr-throughput | unmeasured
