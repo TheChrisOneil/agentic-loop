@@ -98,7 +98,7 @@ kinds are the four value vectors in the executive deck (`course/harness/project/
 | `tvr-speed` | Organizational speed | Iterations of a product, proposal or response per period |
 | `tvr-margin` | Margin amplification | Value recovered or retained per unit, net of compute spend |
 
-At least one `cost`, one `quality` and one `tvr-*` KPI are required. `baseline` is what the
+No other `kind` is accepted. At least one `cost`, one `quality` and one `tvr-*` KPI are required. `baseline` is what the
 manual process does today, or `unmeasured` — which the validator accepts and warns about. A TVR
 baseline nobody has measured is written `unmeasured`, never estimated.
 

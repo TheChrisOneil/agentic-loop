@@ -4,9 +4,9 @@ Step 1 of the workshop agent: a machine-readable representation of an agentic lo
 deterministic gate over it.
 
 ```bash
-make example              # the design of the working loop in ../demo — 23 passed, 0 failed
+make example              # the design of the working loop in ../demo — 24 passed, 0 failed
 make broken               # a design that looks reasonable and fails 15 checks
-make rules                # the 23 rules, in plain language
+make rules                # the 24 rules, in plain language
 make check   DESIGN=my.design
 make diagram DESIGN=my.design    # a Mermaid sequence diagram
 make flow    DESIGN=my.design    # a Mermaid flowchart, colored by step type
@@ -40,14 +40,14 @@ before a design is ever shown to a student, it costs nothing, and it cannot be a
 
 The workshop tool is governed by the rules the workshop teaches. That is the point.
 
-## The twenty-three rules
+## The twenty-four rules
 
 Run `make rules`. They fall into four groups:
 
 | Group | Rules | What they enforce |
 |---|---|---|
 | Completeness | V1, V2, V5, V9, V10 | Nothing is left implicit |
-| Accountability | V3, V4, V19, V20, V23 | A named approver, an exit number, cost, quality and Total Value Realized KPIs |
+| Accountability | V3, V4, V19, V20, V23, V24 | A named approver, an exit number, cost, quality and Total Value Realized KPIs of known kinds |
 | The course's own invariants | V7, V11, V12, V13, V15, V16, V17 | Judgment is isolated and surrounded; gates are checkable; evidence is not model-written |
 | Honesty | V18, V20 | Tamper detection declared; an unmeasured baseline is warned, not hidden |
 

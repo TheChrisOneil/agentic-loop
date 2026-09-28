@@ -153,7 +153,7 @@ a{color:var(--accent)}
     <span class="st">use-case.txt</span><span class="arrow">→</span>
     <span class="st">screen.awk <span class="chip code">rule</span></span><span class="arrow">→</span>
     <span class="st">generate <span class="chip model">model</span></span><span class="arrow">→</span>
-    <span class="st">validate V1–V23 <span class="chip gate">gate</span></span><span class="arrow">→</span>
+    <span class="st">validate V1–V24 <span class="chip gate">gate</span></span><span class="arrow">→</span>
     <span class="st">brief + render</span><span class="arrow">→</span>
     <span class="st">accept sha256 <span class="chip gate">gate</span></span><span class="arrow">→</span>
     <span class="st">scaffold</span><span class="arrow">→</span>
@@ -188,7 +188,7 @@ classDiagram
   class RecordedSource { --recorded; 0 tokens }
   class Design { @meta @unit @steps @gates @evidence @kpis }
   class Parser { parse.awk }
-  class Validator { V1..V23; ERROR blocks, WARN does not }
+  class Validator { V1..V24; ERROR blocks, WARN does not }
   class Renderer { seq | flow; check-gates.awk }
   class Brief { BRIEF.md + diagrams }
   class Reviser { REVISION_CAP=3; keeps proposed.vN }
@@ -382,7 +382,7 @@ sequenceDiagram
   <div class="tbl"><table>
     <thead><tr><th>#</th><th>Condition</th><th>Refusal</th><th>Evidence</th></tr></thead>
     <tbody>
-      <tr><td class="num">1</td><td>Design passes V1–V23</td><td>does not pass the validator</td><td class="mono">scaffold.sh:21-25</td></tr>
+      <tr><td class="num">1</td><td>Design passes V1–V24</td><td>does not pass the validator</td><td class="mono">scaffold.sh:21-25</td></tr>
       <tr><td class="num">2</td><td>Register holds an acceptance for this exact SHA-256</td><td>has not been accepted</td><td class="mono">scaffold.sh:28-38</td></tr>
       <tr><td class="num">3</td><td>Every gate attaches to a real step</td><td>cannot be drawn</td><td class="mono">scaffold.sh:47-59</td></tr>
     </tbody>

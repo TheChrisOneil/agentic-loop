@@ -103,6 +103,7 @@ A design is rejected unless all of these hold:
 21. Step `scope` is `batch` or `unit`, and every batch step comes before every unit step
 22. Every gate's `after` names a step id that exists
 23. At least one KPI of a Total Value Realized kind: `tvr-velocity`, `tvr-throughput`, `tvr-speed` or `tvr-margin`
+24. Every KPI `kind` is one of the eight listed in the format below; no other value
 
 ## 5. The format
 

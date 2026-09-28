@@ -39,7 +39,7 @@ Five tools, and only one of them spends a model:
 
 | | |
 |---|---|
-| `validate.sh` | 23 rules over a design. Deterministic |
+| `validate.sh` | 24 rules over a design. Deterministic |
 | `render.sh` | design → Mermaid sequence diagram or flowchart. Deterministic |
 | `generate.sh` | a described process → a validated design. **The one model call** |
 | `accept.sh` | a named person, a typed phrase, an append-only chained register |

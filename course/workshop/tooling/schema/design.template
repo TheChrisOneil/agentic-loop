@@ -48,5 +48,5 @@ integrity:
 @kpis
 # name | kind | baseline today, or "unmeasured"
 # kind: cost | quality | throughput | control | tvr-velocity | tvr-throughput | tvr-speed | tvr-margin
-# at least one cost, one quality and one tvr-* KPI
+# at least one cost, one quality and one tvr-* KPI; no other kind is accepted
  |  |

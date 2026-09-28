@@ -160,6 +160,14 @@ END {
   if (tvr>0) ok("V23",tvr " KPI(s) measure total value realized")
   else rec("ERROR","V23","no KPI measures total value realized","add a tvr-velocity, tvr-throughput, tvr-speed or tvr-margin KPI; cost says what it spends, TVR says what it returns")
 
+  # V24 every kind is one of the eight
+  badkind=""
+  for (i=1;i<=k;i++) { kk=tolower(KKIND[i])
+    if (kk !~ /^(cost|quality|throughput|control|tvr-velocity|tvr-throughput|tvr-speed|tvr-margin)$/)
+      badkind=badkind " \"" KKIND[i] "\"" }
+  if (badkind=="") { if (k>0) ok("V24","every KPI kind is a known kind") }
+  else rec("ERROR","V24","unknown KPI kind(s):" badkind,"use cost, quality, throughput, control, tvr-velocity, tvr-throughput, tvr-speed or tvr-margin")
+
   # ---- output ----
   if (mode=="tsv") {
       for (i=1;i<=n;i++) printf "%s\t%s\t%s\t%s\n", SEV[i], ID[i], MSG[i], FIX[i]
