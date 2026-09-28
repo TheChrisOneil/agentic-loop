@@ -102,6 +102,8 @@ A design is rejected unless all of these hold:
 20. Baselines are given, or written `unmeasured`
 21. Step `scope` is `batch` or `unit`, and every batch step comes before every unit step
 22. Every gate's `after` names a step id that exists
+23. At least one KPI of a Total Value Realized kind: `tvr-velocity`, `tvr-throughput`, `tvr-speed` or `tvr-margin`
+24. Every KPI `kind` is one of the eight listed in the format below; no other value
 
 ## 5. The format
 
@@ -136,7 +138,7 @@ artifact: <what the proof contains>
 integrity: <how tampering is detected>
 
 @kpis
-<name> | cost|quality|throughput|control | <baseline or "unmeasured">
+<name> | cost|quality|throughput|control|tvr-velocity|tvr-throughput|tvr-speed|tvr-margin | <baseline or "unmeasured">
 ```
 
 Emit the design and nothing else.
@@ -195,6 +197,7 @@ cost per completed decision | cost | unmeasured
 claims paid against a wrong cost centre | quality | 3 in the last year
 days from submission to decision | throughput | 9 days
 refusal rate at intake | control | not applicable before this loop
+claims decided per reviewer per week | tvr-throughput | unmeasured
 ```
 
 Read the gates against the steps: `4` and `7` are the gate-typed steps themselves, and `9` is
