@@ -125,13 +125,13 @@ at cook and sling.
 | `condition` | no | compile-time filter: `{{v}}`, `!{{v}}`, `{{v}} == x`, `{{v}} != x` |
 | `children` | no | nested steps, same schema, shared id namespace |
 | `expand` / `expand_vars` | no | inline expansion; the step is replaced |
-| `waits_for` | no | `all-children`, `any-children`, `children-of(id)` — **inert in v0** |
+| `waits_for` | no | `all-children`, `any-children`, `children-of(id)`. The edge blocks; the **mode is inert** |
 | `metadata` | no | string map; `gc.*` reserved |
 | `[steps.check]` | no | graph-only |
 | `[steps.retry]` | no | graph-only |
 | `[steps.drain]` | no | graph-only |
 | `[steps.on_complete]` | no | graph-only |
-| `[steps.gate]` | no | `{type, id, timeout}` — **inert in v0** |
+| `[steps.gate]` | no | `{type, id, timeout}`. **The gate blocks; the `type` is inert** — see §4 |
 | `[steps.loop]` | no | see below; until-loops are **inert** |
 | `timeout` | no | positive Go duration; **requires `check`** |
 | `[steps.tally]` | — | **removed** — `steps.tally was removed from the SDK` |
@@ -193,8 +193,8 @@ true) and `sequential` are mutually exclusive. Placeholders `{item}`, `{item.fie
 ### `[steps.loop]`
 
 Exactly one of `count`, `until`, `range`; `body` non-empty; `max` required with `until`.
-**Until-loop re-execution is inert** — the label is written, nothing reads it, exactly one
-iteration runs. Use `check` for orchestrator-driven re-execution.
+**Until-loop re-execution is inert** — see §4. Use `check` for orchestrator-driven
+re-execution.
 
 ## The incompatibility matrix
 
@@ -348,6 +348,42 @@ declaration as an error, host mismatches as an error. `gc lint` warns on depreca
 
 Run both in the compiler's own test loop. They are the equivalent of `make ready`.
 
+## Accepted but inert (spec §4)
+
+Four constructs the parser and compiler accept that **no runtime component consumes** in the
+current release. They raise **no error and no warning** — they simply sit in the formula doing
+nothing, which makes them the most dangerous thing on this page for a generator. Distinct from
+*removed* constructs, which fail compilation (`steps.tally`), and *deprecated* ones, which warn
+and have a replacement (`contract = "graph.v2"`, `{{issue}}`, `gc.output_json`, `gc.model`).
+
+| # | Construct | What the compiler does | What never happens |
+|---|---|---|---|
+| 1 | `[steps.loop]` with `until` + `max` | validates the condition, writes a `loop:` label carrying `{"until":…,"max":…}` on the first body step | nothing reads the label. **Exactly one iteration runs**, whatever the condition or budget |
+| 2 | `[steps.gate].type` — `gh:run`, `gh:pr`, `timer`, `human`, `mail` | records the value **without validating it** | no bundled watcher acts on any of them |
+| 3 | `waits_for` modes | compiles a readiness-blocking `waits-for` edge **plus** a gate-mode label | no dispatcher interprets `all-children` vs `any-children` |
+| 4 | `[vars.<name>].type` — `string`, `int`, `bool` | parses it into the variable definition | never enforced. Only `required`, `enum` and `pattern` are checked at instantiation |
+
+**Read 2 and 3 carefully, because half of each one works.**
+
+For the gate, the compiler **synthesizes a real gate bead** (type `gate`) that blocks its step
+until that bead is closed — manually, or by a watcher you write. The blocking is real. Only the
+`type` vocabulary is decoration.
+
+That makes `[steps.gate]` the honest primitive for a named human approval: a hold that nothing
+can pass until a person closes it. It is stronger than a prompt asking an agent to wait. Emit
+it, put the approver's name in the step, and write your own watcher if you want automation —
+but do not expect `type = "human"` to summon one.
+
+Likewise `waits_for` genuinely blocks readiness. Only the all/any distinction is ignored, so
+treat every mode as "all" and do not encode meaning in the choice.
+
+Zero bundled formulas use `gate` or `waits_for`, and none of the 96 local files do either. If
+your compiler emits them it is the first thing in this city that does.
+
+**Compiler rule:** never emit construct 1 or 4, and never let a validation rule depend on 2 or
+3's inert half. A rule that trusts an inert construct is a rule that does nothing, which is the
+failure mode this whole project exists to catch.
+
 ## What gc enforces — reproduced locally
 
 `./probe.sh` reproduces: step `id` required; `title` required unless `expand`; duplicate id;
@@ -405,6 +441,8 @@ New rules the formula target demands:
 - No step is blocked on the control bead that closes it (the close-ownership invariant).
 - Nothing relies on `children` for ordering; ordering is `needs` or it does not exist.
 - Cleanup belongs in a `teardown` scope member, never in the last work step.
+- No `until` loop and no `vars.type` is ever emitted; both are inert.
+- A human approval is a `[steps.gate]`, whose block is real, not a `type` that is not.
 
 ## Reproducing
 
@@ -433,7 +471,7 @@ against it. Diff its output against a new `gc` rather than trusting this file.
 | 3.1–3.3 Check, Retry, Drain | the three sub-tables |
 | 3.4 On-Complete and Tally | `[steps.on_complete]`; tally removed |
 | 3.5 Scopes and Failure Policy | Scopes and failure policy |
-| 4 Accepted But Inert | marked inline as **inert** |
+| 4 Accepted But Inert | Accepted but inert |
 | 5 Conformance and Compatibility | Conformance |
 
 Thin by choice: 1.5, 1.6, and the aspect/advice/pointcut surface. Read the spec for those
