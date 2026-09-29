@@ -49,3 +49,9 @@ Five tools, and only one of them spends a model:
 
 > An AI system you can trust in a business is mostly code, with judgment in the few places
 > only judgment will do — and it proves its work rather than asking to be believed.
+
+---
+
+The Gas City formula compiler that grew out of this work now lives in its own repository:
+**[process-to-loop](https://github.com/TheChrisOneil/process-to-loop)**. This repository stays
+as the course artifact.

@@ -3,7 +3,7 @@
 Recorded, not fixed. Each entry names the files, what actually happens, and what a fix would
 be. Nothing here breaks the session as it runs today on macOS.
 
-Last reviewed: 2026-09-22.
+Last reviewed: 2026-09-28.
 
 Paths are given as files, not line numbers — a line number is wrong after the next edit and
 sends the reader to the wrong place with confidence.
@@ -49,16 +49,23 @@ produce identical digests, so existing register rows still verify — worth prov
 
 ---
 
-## 3. Untested on GNU awk and on WSL
+## 3. Tested on GNU awk; untested on WSL
 
-The code is 155 awk invocations deep and has only ever run against BSD awk on macOS. Two
+The code is 155 awk invocations deep and was built against BSD awk on macOS. Two
 BSD-versus-GNU differences were hit and fixed during the build (a builtin name collision on
-`exp`, and a line-continuation rule), so the remaining risk is believed low.
+`exp`, and a line-continuation rule).
 
-**Believed low is not tested.** Nobody has run `make test` under WSL or under `gawk`.
+On 2026-09-28, under GNU Awk 5.1.0 on Linux:
 
-**Fix:** run the suite once on a Windows machine with WSL2, and once with `gawk` aliased over
-`awk` on any Linux host.
+| Check | Result |
+|---|---|
+| `course/demo/loop.sh` | worked 7, proposed 4, refused 3, failed 0; matches the README |
+| `make -C course/workshop test` | 11 PASS, 0 FAIL, exit 0 |
+| `course/check.sh` | 39 PASS, 0 FAIL after issue 14 was resolved |
+
+**Still untested:** WSL2.
+
+**Fix:** run `make test` and `./check.sh` once on a Windows machine with WSL2.
 
 ---
 
@@ -230,3 +237,12 @@ Artifact, and the two are kept in step by hand.
 working from the repo.
 
 **Fix:** decide which one is authoritative and say so in the README.
+
+---
+
+## 14. `check.sh` required two deprecated files (resolved 2026-09-28)
+
+`course/check.sh` required `course/deck.md` and `course/facility-request-email.md`. Both are
+deprecated and absent from the repo, so `make ready` could not exit 0 on a fresh clone.
+
+**Fix applied:** both names are removed from the materials check in `course/check.sh`.

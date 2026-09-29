@@ -1,0 +1,281 @@
+# Generated from a design by the formula compiler. Do not edit by hand.
+# Edit the design and compile again. This file cannot disagree with it.
+
+formula = "invoice-reconciliation"
+
+description = """
+Supplier invoices that do not match their purchase order, roughly 400 a month
+
+Assumptions this method rests on:
+  - Invoice and purchase order lines are retrievable from the ERP as structured records
+  - A supplier reusing a purchase order number across periods is out of scope for now
+  - Tolerance limits are set by finance policy and reviewed quarterly
+  - The supervised supplier list is maintained by the contract owner, not by this loop
+
+Unit of work: One (supplier, purchase order) pair
+Kind: rule
+
+Approver: A. Rivera, Accounts Payable
+Exit criterion: Shut down if review minutes per unit exceeds 4 for two consecutive weeks
+
+Measures:
+  - cost per completed decision (cost), baseline unmeasured
+  - escaped defect rate (quality), baseline 0 known in the last quarter
+  - review minutes per unit (throughput), baseline 9 minutes manual
+  - refusal rate (control), baseline not applicable before this loop
+  - days from invoice receipt to payment decision (tvr-velocity), baseline unmeasured
+"""
+
+[requires]
+formula_compiler = ">=2.0.0"
+
+[catalog]
+name = "invoice-reconciliation"
+description = "Supplier invoices that do not match their purchase order, roughly 400 a month"
+
+[vars]
+
+[vars.notify]
+description = "Who is told when this method needs a person. A named role."
+default = "A. Rivera, Accounts Payable"
+
+[vars.artifact_root]
+description = "Absolute path where this run writes its evidence."
+required = true
+
+# ---------------------------------------------------------------- mechanical ----
+[[steps]]
+id = "s01-decompose"
+title = "decompose"
+description = """
+Group invoice lines and purchase order lines into units by supplier and order
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "1", "eb.design_type" = "mechanical" }
+
+# ---------------------------------------------------------------- mechanical ----
+[[steps]]
+id = "s02-match"
+title = "match"
+needs = ["s01-decompose"]
+description = """
+Reconcile each unit by arithmetic and screen memo text for instructions
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "2", "eb.design_type" = "mechanical" }
+
+# ---------------------------------------------------------------- coordination ----
+[[steps]]
+id = "s03-select"
+title = "select"
+needs = ["s02-match"]
+description = """
+Choose what is worked tonight, worst first, under a budget
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "3", "eb.design_type" = "coordination" }
+
+# ---------------------------------------------------------------- gate ----
+[[steps]]
+id = "s04-gate-pre"
+title = "gate-pre"
+needs = ["s03-select"]
+description = """
+Refuse no-PO, injection-suspect, supervised supplier, or over the cap
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "4", "eb.design_type" = "gate" }
+
+# ---------------------------------------------------------------- gate ----
+[[steps]]
+id = "g01-gate-pre"
+title = "Gate: exposure over 2000 USD, or supplier on the supervised list, or no purchase orde…"
+needs = ["s04-gate-pre"]
+description = """
+This step exists to run one check. It decides nothing itself.
+
+The condition, from the design:
+  exposure over 2000 USD, or supplier on the supervised list, or no purchase order exists
+
+If the check refuses, the refusal is:
+  Route to a second approver, or raise a purchase order for this spend before any amount is approved
+
+The check is .gc/scripts/checks/invoice-reconciliation-g01.sh. Exit 0 to pass. Any other non-zero exit
+is "not yet" and consumes an attempt. Exit 75 only when the check could
+not run at all — never for a business failure.
+
+Close with `gc.outcome=pass` or `gc.outcome=fail`.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.gate_after" = "4" }
+
+[steps.check]
+max_attempts = 1
+
+[steps.check.check]
+mode = "exec"
+path = ".gc/scripts/checks/invoice-reconciliation-g01.sh"
+timeout = "2m"
+
+# ---------------------------------------------------------------- thinking ----
+[[steps]]
+id = "s05-judge"
+title = "judge"
+needs = ["g01-gate-pre"]
+description = """
+Decide whether a variance is a dispute, discount, duplicate, partial or typo
+
+This is the judgment in this method. It is the only step that reasons.
+Quote the evidence you relied on. Do not assert anything you cannot point at.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "gc.provider" = "claude", "eb.design_step" = "5", "eb.design_type" = "thinking" }
+
+# ---------------------------------------------------------------- test ----
+[[steps]]
+id = "s06-verify"
+title = "verify"
+needs = ["s05-judge"]
+description = """
+Recompute the claimed adjustment from the raw files and compare
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "6", "eb.design_type" = "test" }
+
+# ---------------------------------------------------------------- gate ----
+[[steps]]
+id = "s07-gate-post"
+title = "gate-post"
+needs = ["s06-verify"]
+description = """
+Refuse an unusable call, missing evidence, or an unverified adjustment
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "7", "eb.design_type" = "gate" }
+
+# ---------------------------------------------------------------- gate ----
+[[steps]]
+id = "g02-gate-post"
+title = "Gate: recomputed adjustment differs from the claimed adjustment by more than 0.01"
+needs = ["s07-gate-post"]
+description = """
+This step exists to run one check. It decides nothing itself.
+
+The condition, from the design:
+  recomputed adjustment differs from the claimed adjustment by more than 0.01
+
+If the check refuses, the refusal is:
+  Return both figures to the reviewer and have a person decide which is right
+
+The check is .gc/scripts/checks/invoice-reconciliation-g02.sh. Exit 0 to pass. Any other non-zero exit
+is "not yet" and consumes an attempt. Exit 75 only when the check could
+not run at all — never for a business failure.
+
+Close with `gc.outcome=pass` or `gc.outcome=fail`.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.gate_after" = "7" }
+
+[steps.check]
+max_attempts = 1
+
+[steps.check.check]
+mode = "exec"
+path = ".gc/scripts/checks/invoice-reconciliation-g02.sh"
+timeout = "2m"
+
+# ---------------------------------------------------------------- mechanical ----
+[[steps]]
+id = "s08-prove"
+title = "prove"
+needs = ["g02-gate-post"]
+description = """
+Write the arithmetic, the commands and the judgment, then checksum it
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Write the proof for this unit under {{artifact_root}}: The invoice as filed, the purchase order as raised, the arithmetic, the judgment, and the checks that ran
+Integrity: SHA-256 recorded at write time and re-checked at delivery; a mismatch blocks delivery
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "8", "eb.design_type" = "mechanical" }
+
+# ---------------------------------------------------------------- coordination ----
+[[steps]]
+id = "s09-deliver"
+title = "deliver"
+needs = ["s08-prove"]
+description = """
+Re-check the checksum and write a proposal for the named approver
+
+Deterministic work only. Do not infer, do not fill gaps, and do not
+decide anything this step was not told to decide.
+
+Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing
+without an outcome is read as a failure.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.design_step" = "9", "eb.design_type" = "coordination" }
+
+# ---------------------------------------------------------------- gate ----
+[[steps]]
+id = "g03-deliver"
+title = "Gate: proof checksum differs from the checksum recorded when it was written"
+needs = ["s09-deliver"]
+description = """
+This step exists to run one check. It decides nothing itself.
+
+The condition, from the design:
+  proof checksum differs from the checksum recorded when it was written
+
+If the check refuses, the refusal is:
+  Stop delivery and have the loop owner establish who edited the proof and when
+
+The check is .gc/scripts/checks/invoice-reconciliation-g03.sh. Exit 0 to pass. Any other non-zero exit
+is "not yet" and consumes an attempt. Exit 75 only when the check could
+not run at all — never for a business failure.
+
+Close with `gc.outcome=pass` or `gc.outcome=fail`.
+"""
+metadata = { "gc.run_target" = "gc.run-operator", "eb.gate_after" = "9" }
+
+[steps.check]
+max_attempts = 1
+
+[steps.check.check]
+mode = "exec"
+path = ".gc/scripts/checks/invoice-reconciliation-g03.sh"
+timeout = "2m"
+

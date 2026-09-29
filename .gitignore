@@ -3,5 +3,3 @@
 .evn*
 *.local
 
-# formula compiler output
-formula-compiler/build/
