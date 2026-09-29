@@ -38,7 +38,9 @@ BEGIN { tbl=""; inblock=0; si=0 }
   if (tbl=="loop" && t ~ /^until[ \t]*=/)      UNTIL=1
   if (tbl=="step" && t ~ /^id[ \t]*=/)         { SID[si]=strval(t); SEEN[SID[si]]++ }
   if (tbl=="step" && t ~ /^needs[ \t]*=/)      NEEDS[si]=t
-  if (tbl=="step" && t ~ /^metadata[ \t]*=/)   META[si]=t
+  if (tbl=="step" && t ~ /^metadata[ \t]*=/)   { META[si]=t
+    if (t ~ /"eb\.design_type" *= *"gate"/) ISGATESTEP[SID[si]]=1
+    if (match(t, /"eb\.gate_after" *= *"[^"]*"/)) { v=substr(t,RSTART,RLENGTH); sub(/.*= *"/,"",v); sub(/"$/,"",v); GUARDED[v]=1 } }
   if (tbl=="checkcheck" && t ~ /^path[ \t]*=/) CPATH[si]=strval(t)
 }
 function scanvars(l,   rest, v) {
@@ -104,6 +106,11 @@ END {
   # F14 gc.kind is compiler-owned
   for (i=1;i<=si;i++) if (META[i] ~ /gc\.kind/ && META[i] !~ /"(scope|cleanup)"/)
     fail("F14", "step " SID[i] " authors gc.kind; only scope and cleanup may be set")
+  # F17 a step that came from a gate-typed design step is actually guarded
+  for (i=1;i<=si;i++) if (ISGATESTEP[SID[i]]) {
+    ds=META[i]; sub(/.*"eb\.design_step" *= *"/,"",ds); sub(/".*/,"",ds)
+    if (!GUARDED[ds]) fail("F17", "step " SID[i] " came from a gate-typed design step, but no check step guards it")
+  }
   # F16 no step both reasons and writes its own proof
   for (i=1;i<=si;i++) if (META[i] ~ /gc\.provider/ && BODY[i] ~ /Write the proof/)
     fail("F16", "step " SID[i] " both runs a model and writes its own proof")
@@ -113,6 +120,6 @@ END {
 
   for (i=1;i<=nf;i++) print "  FAIL  " F[i]
   for (i=1;i<=nw;i++) print "  WARN  " W[i]
-  printf "  %d rule(s) passed, %d failed, %d warning(s)\n", 16-nf, nf, nw
+  printf "  %d rule(s) passed, %d failed, %d warning(s)\n", 17-nf, nf, nw
   exit (nf>0 ? 1 : 0)
 }

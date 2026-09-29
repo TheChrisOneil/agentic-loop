@@ -99,7 +99,7 @@ Use one as the input to a generation:
 make generate NAME=demo UC=examples/prior-auth.use-case.txt
 ```
 
-`prior-auth` was generated as a check and passed 22 of 22 on the first attempt, no repairs.
+`prior-auth` was generated as a check and passed 22 of 25 on the first attempt, no repairs.
 It is also the one that carries a regulated-data constraint, which is worth watching: PHI in
 the description should show up as a constraint in the design, not as a sentence nobody acted on.
 

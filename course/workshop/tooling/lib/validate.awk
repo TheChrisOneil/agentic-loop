@@ -128,6 +128,15 @@ END {
   else { if (serr!="") rec("ERROR","V21","scope must be batch or unit at step(s)" serr,"leave the field off for unit, or write batch")
          if (order_err!="") rec("ERROR","V21","batch step(s)" order_err " come after a unit step","everything that runs once happens before the units exist") }
 
+  # V25 every step typed gate is named by a gate
+  orphan=""
+  for (i=1;i<=s;i++) if (tolower(STYPE[i])=="gate") {
+    hit=0; for (j=1;j<=g;j++) if (GAFT[j]==SID[i]) hit=1
+    if (!hit) orphan = orphan " " SID[i]
+  }
+  if (orphan=="") ok("V25","every step typed gate is named by a gate")
+  else rec("ERROR","V25","step(s)" orphan " are typed gate but no gate names them","a step that looks like a control and enforces nothing is worse than no step — it reads as a gate in every diagram and refuses nothing")
+
   # V22 every gate attaches to a real step
   ghost=""
   for (i=1;i<=g;i++) { found=0

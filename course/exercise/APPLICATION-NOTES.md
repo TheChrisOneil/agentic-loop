@@ -132,7 +132,7 @@ It takes about half a minute, and tells you where it is:
 ```
   screening the description … ok, 1083 characters, no text addressed to the system
   asking claude-opus-5 for a design … (about 30 seconds)
-  validating … 22 passed, 0 failed, 1 warning(s)
+  validating … 25 passed, 0 failed, 1 warning(s)
 ```
 
 Four things happened in those three lines:
@@ -146,7 +146,7 @@ Four things happened in those three lines:
    ```
    validating … 2 failed — sending the findings back
    asking claude-opus-5 again, carrying what the validator said …
-   validating … 22 passed, 0 failed, 1 warning(s)
+   validating … 25 passed, 0 failed, 1 warning(s)
    ```
 
    Two rounds is the budget. After that it refuses and shows you the findings.
@@ -333,7 +333,7 @@ reconcile an invoice against a purchase order. That gap is your job.
 ## What to hand in
 
 1. `jobs/team-N/use-case.txt` — the process, in your words
-2. `jobs/team-N/proposed.design` — passing 22/22
+2. `jobs/team-N/proposed.design` — passing 25/25
 3. `jobs/team-N/BRIEF.md` and `diagrams/` — from step B6
 4. One sentence: **which step is the judgment, and what checks it**
 

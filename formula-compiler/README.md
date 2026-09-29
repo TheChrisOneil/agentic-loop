@@ -12,14 +12,14 @@ make conformance NAME=invoice-reconciliation
 
 ```
 use case (prose)
-  → design            the workshop's schema, 22 rules            [existing]
+  → design            the workshop's schema, 25 rules            [existing]
   → formula           Gas City formulas v2 TOML                  [here]
   + check scripts     one per gate, refusing until implemented   [here]
   → gc formula show   the installed gc says whether it compiles  [conformance]
 ```
 
 The front half is the loop workshop's: describe a process, one model call turns it into a
-design, 22 rules judge the design, a named person accepts it. This is the **back half** — a
+design, 25 rules judge the design, a named person accepts it. This is the **back half** — a
 second emitter beside the loop emitter, reading the design through **the same parser**
 (`course/workshop/tooling/lib/parse.awk`), so the two backends cannot disagree about what a
 design says.
@@ -36,6 +36,10 @@ design says.
 | `@gates` row | **its own step** carrying `[steps.check]`, plus a generated check script |
 | `@evidence` | the writer step is told what proof to write and how it is checksummed |
 
+Every emitted step carries its provenance — `eb.design_step` and `eb.design_type` — so a
+compiled bead can be traced back to the line of the design it came from, and F17 can tell
+whether a step that claims to be a control actually has one.
+
 **Each gate becomes a step, not a promise inside one.** A gate expressed as a sentence in a
 step's prompt is a request. A gate expressed as `[steps.check] mode = "exec"` is a script the
 orchestrator runs, and everything downstream waits on it. That is the whole reason this target
@@ -44,7 +48,7 @@ is better than the bash loop.
 Every generated check refuses until implemented, and says so. A gate that cannot run is not a
 gate, so the compiler will not pretend otherwise by emitting a passing stub.
 
-## The sixteen rules
+## The seventeen rules
 
 `gc` checks that the graph is well formed. It does not check that the method is any good, and
 it accepts several things silently — a check script that does not exist, an undeclared
@@ -68,6 +72,7 @@ it accepts several things silently — a check script that does not exist, an un
 | F14 | `gc.kind` is not authored, except `scope` and `cleanup` |
 | F15 | *(warning)* something in the method waits for a person |
 | F16 | no step both runs a model and writes its own proof |
+| F17 | a step from a gate-typed design step is actually guarded by a check step |
 
 F5 is the one that matters most. It is the dropped-gate bug, at the formula layer: a control
 that is declared, reported, and absent. `gc` compiles that formula happily.

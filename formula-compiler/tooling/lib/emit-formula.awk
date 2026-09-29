@@ -8,7 +8,7 @@
 # -v CHECKDIR=<path>       where check scripts live, repo-relative
 
 function slug(t,   s) { s=tolower(t); gsub(/[^a-z0-9]+/,"-",s); gsub(/^-+|-+$/,"",s)
-                        if (length(s)>40) s=substr(s,1,40); gsub(/-+$/,"",s); return s }
+                        if (length(s)>24) s=substr(s,1,24); gsub(/-+$/,"",s); return s }
 function esc(t,   s)  { s=t; gsub(/\\/,"\\\\",s); gsub(/"/,"\\\"",s); return s }
 function block(t,   s){ s=t; gsub(/"""/,"'''",s); return s }
 function tt(t, n,   s){ s=t; gsub(/^[ \t]+|[ \t]+$/,"",s)
@@ -26,7 +26,8 @@ END {
   # blocks everything downstream instead of being a promise inside a step.
   for (i=1;i<=s;i++) EID[i] = sprintf("s%02d-%s", i, slug(SNAME[i]))
   for (j=1;j<=g;j++) {
-    GEID[j] = sprintf("g%02d-%s", j, slug(GCOND[j]))
+    for (i=1;i<=s;i++) if (SID[i]==GAFT[j]) GAFTNAME[j]=SNAME[i]
+    GEID[j] = sprintf("g%02d-%s", j, slug(GAFTNAME[j]!="" ? GAFTNAME[j] : GCOND[j]))
     GSCRIPT[j] = CHECKDIR "/" NAME "-g" sprintf("%02d", j) ".sh"
     for (i=1;i<=s;i++) if (SID[i]==GAFT[j]) GPOS[j]=i
   }
@@ -106,12 +107,13 @@ END {
     print "Close with `gc.outcome=pass`, or `gc.outcome=fail` and a reason. Closing"
     print "without an outcome is read as a failure."
     print "\"\"\""
+    prov = "\"eb.design_step\" = \"" esc(SID[i]) "\", \"eb.design_type\" = \"" esc(ty) "\""
     if (ty=="thinking" && ac=="model")
-      print "metadata = { \"gc.run_target\" = \"gc.run-operator\", \"gc.provider\" = \"claude\" }"
+      print "metadata = { \"gc.run_target\" = \"gc.run-operator\", \"gc.provider\" = \"claude\", " prov " }"
     else if (ty=="thinking" && ac=="human")
-      print "metadata = { \"eb.seat\" = \"" esc(approver) "\" }"
+      print "metadata = { \"eb.seat\" = \"" esc(approver) "\", " prov " }"
     else
-      print "metadata = { \"gc.run_target\" = \"gc.run-operator\" }"
+      print "metadata = { \"gc.run_target\" = \"gc.run-operator\", " prov " }"
     if (ty=="thinking" && ac=="human") {
       print ""
       print "[steps.gate]"
@@ -144,7 +146,7 @@ END {
       print ""
       print "Close with `gc.outcome=pass` or `gc.outcome=fail`."
       print "\"\"\""
-      print "metadata = { \"gc.run_target\" = \"gc.run-operator\" }"
+      print "metadata = { \"gc.run_target\" = \"gc.run-operator\", \"eb.gate_after\" = \"" esc(GAFT[j]) "\" }"
       print ""
       print "[steps.check]"
       print "max_attempts = 1"
