@@ -7,8 +7,10 @@ Auth: a service account with domain-wide delegation for two scopes:
   https://www.googleapis.com/auth/admin.directory.user.readonly  (impersonates ADMIN_EMAIL)
   https://www.googleapis.com/auth/gmail.settings.basic           (impersonates each user)
 
-Environment:
-  GOOGLE_APPLICATION_CREDENTIALS  path to the service-account JSON key (never commit it)
+Environment (one credential mode):
+  SERVICE_ACCOUNT_EMAIL           keyless (default): ADC signs JWTs via the IAM Credentials API;
+                                  caller needs roles/iam.serviceAccountTokenCreator on the SA
+  GOOGLE_APPLICATION_CREDENTIALS  key file mode: path to a service-account JSON key
   ADMIN_EMAIL                     a Workspace admin used for directory reads
 """
 
@@ -19,16 +21,34 @@ import os
 import sys
 from pathlib import Path
 
+import google.auth
+from google.auth import iam
+from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 DIRECTORY_SCOPE = "https://www.googleapis.com/auth/admin.directory.user.readonly"
 GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.settings.basic"
+CLOUD_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
+TOKEN_URI = "https://oauth2.googleapis.com/token"
 TEMPLATE = Path(__file__).with_name("template.html")
 RETRIES = 5
 
 log = logging.getLogger("signatures")
+
+
+def load_credentials():
+    """Keyless delegation when SERVICE_ACCOUNT_EMAIL is set; key file otherwise."""
+    sa_email = os.environ.get("SERVICE_ACCOUNT_EMAIL")
+    if sa_email:
+        source, _ = google.auth.default(scopes=[CLOUD_SCOPE])
+        signer = iam.Signer(Request(), source, sa_email)
+        return service_account.Credentials(signer, sa_email, TOKEN_URI)
+    key = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    if key:
+        return service_account.Credentials.from_service_account_file(key)
+    sys.exit("Set SERVICE_ACCOUNT_EMAIL (keyless) or GOOGLE_APPLICATION_CREDENTIALS (key file).")
 
 
 def fields(user):
@@ -102,11 +122,10 @@ def main():
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     admin = os.environ.get("ADMIN_EMAIL")
-    key = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-    if not admin or not key:
-        sys.exit("Set ADMIN_EMAIL and GOOGLE_APPLICATION_CREDENTIALS.")
+    if not admin:
+        sys.exit("Set ADMIN_EMAIL.")
 
-    creds = service_account.Credentials.from_service_account_file(key)
+    creds = load_credentials()
     template = TEMPLATE.read_text()
     wanted = {u.lower() for u in args.user or []}
     counts = {}
